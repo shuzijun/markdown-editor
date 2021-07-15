@@ -32,7 +32,7 @@ intellij {
     ideaDependencyCachePath = "$gradle.gradleUserHomeDir/caches/modules-2/files-2.1/com.jetbrains.intellij.idea"
     /* localPath project.idea_local_path
      alternativeIdePath project.idea_local_path*/
-    plugins = project.intellij_plugins.split(",").toList()
+    // plugins = project.intellij_plugins.split(",").toList()
 /*    prepareSandbox  {
         from("src/main/natives" + (project.build_env.isEmpty() ? "" : "-") + project.build_env) { into(getPluginName() + '/natives') }
     }*/

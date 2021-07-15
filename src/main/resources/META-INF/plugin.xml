@@ -13,7 +13,7 @@
          ]]>
     </description>
 
-    <idea-version since-build="202.0"/>
+    <idea-version since-build="201.0"/>
     <!-- please see https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html
          on how to target different products -->
     <depends>com.intellij.modules.lang</depends>

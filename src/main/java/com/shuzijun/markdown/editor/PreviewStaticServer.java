@@ -80,12 +80,7 @@ public class PreviewStaticServer extends HttpRequestHandler {
 
     @Override
     public boolean isSupported(@NotNull FullHttpRequest request) {
-        return (super.isSupported(request) || request.method() == HttpMethod.POST) && request.uri().startsWith(PREFIX);
-    }
-
-    @NotNull
-    protected HttpRequestHandler.OriginCheckResult isOriginAllowed(@NotNull HttpRequest request) {
-        return  HttpRequestHandler.OriginCheckResult.ALLOW ;
+        return (request.method() == HttpMethod.GET || request.method() == HttpMethod.HEAD || request.method() == HttpMethod.POST) && request.uri().startsWith(PREFIX);
     }
 
     @Override
