@@ -1,0 +1,31 @@
+<idea-plugin>
+    <id>com.shuzijun.markdown-editor</id>
+    <name>markdown editor</name>
+    <version>1.0</version>
+    <vendor email="shuzijun0109@gmail.com">shuzijun</vendor>
+
+    <description>
+        <![CDATA[
+            <div>
+                <p>IntelliJ Platform A full-featured WYSIWYG editor for markdown
+                More tutorial please visit: <a href="https://github.com/shuzijun/markdown-editor">here</a></p>
+            </div>
+         ]]>
+    </description>
+
+    <idea-version since-build="202.0"/>
+    <!-- please see https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html
+         on how to target different products -->
+    <depends>com.intellij.modules.lang</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!--<fileType name="Markdown Editor" extensions="md;markdown" language="Markdown Editor"
+                  implementationClass="com.shuzijun.markdown.editor.MarkdownFileType" fieldName="INSTANCE"/>-->
+        <fileEditorProvider implementation="com.shuzijun.markdown.editor.MarkdownPreviewFileEditorProvider"/>
+        <httpRequestHandler implementation="com.shuzijun.markdown.editor.PreviewStaticServer"/>
+    </extensions>
+
+    <actions>
+        <!-- Add your actions here -->
+    </actions>
+</idea-plugin>

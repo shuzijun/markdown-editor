@@ -1,0 +1,152 @@
+<html>
+<head>
+    <link rel="stylesheet"
+          href="http://localhost:{{port}}/d5762d7c-840b-4d0b-bd5d-639850d2b4e2/resources/vditor/dist/index.css"/>
+    <link rel="stylesheet"
+          href="http://localhost:{{port}}/d5762d7c-840b-4d0b-bd5d-639850d2b4e2/resources/vditor/style.css"/>
+    <script src="http://localhost:{{port}}/d5762d7c-840b-4d0b-bd5d-639850d2b4e2/resources/vditor/dist/index.min.js"></script>
+    <script src="http://localhost:{{port}}/d5762d7c-840b-4d0b-bd5d-639850d2b4e2/resources/vditor/jquery-3.6.0.min.js"></script>
+</head>
+<body class="body">
+<div id="vditor" class="vditor"></div>
+<div id="editorInfo" style="display:none;">
+    <div style="max-width: 520px; font-size: 14px;line-height: 22px;margin-bottom: 14px;">
+        <p style="text-align: center;margin: 14px 0">
+            <em>Markdown Editor</em>
+        </p>
+        <div style="display: flex;margin-bottom: 14px;flex-wrap: wrap;align-items: center">
+            <div style="flex: 1;min-width: 250px">
+                IntelliJ Platform A full-featured WYSIWYG editor for markdown<br>
+                Acknowledgement <a href="https://github.com/Vanessa219/vditor" target="_blank">vditor</a>
+            </div>
+        </div>
+        <div style="display: flex;flex-wrap: wrap;">
+            <ul style="list-style: none;flex: 1;min-width:148px">
+                <li>
+                    Source Code: <a href="https://github.com/shuzijun/markdown-editor" target="_blank">shuzijun/markdown-editor</a>
+                </li>
+                <li>
+                    Donate: <a href="https://opencollective.com/leetcode-editor" target="_blank">opencollective</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    $.ajaxSettings.async = false;
+    const fileUrl = "http://localhost:{{port}}/d5762d7c-840b-4d0b-bd5d-639850d2b4e2/markdownFile?file={{filePath}}&projectUrl={{projectUrl}}&projectName={{projectName}}";
+    let initError = true;
+
+    function editBlur(md) {
+        if (initError) {
+            vditor.tip("Get init file request error,Don't save.", 1000);
+            return;
+        }
+        $.post(fileUrl, {"value": md}, function (data) {
+            if (data.success == false) {
+                vditor.tip("Failed to save file:" + data.message, 0);
+            } else {
+                vditor.tip("Save success", 1000);
+            }
+        }).fail(function () {
+            vditor.tip("Save file request error", 0);
+        })
+    }
+
+    function editFocus() {
+        $.get(fileUrl, function (data) {
+            vditor.setValue(data);
+        }).fail(function () {
+            vditor.tip("Get file request error", 0);
+        })
+    }
+
+    function initValue() {
+        let value = "";
+        $.get(fileUrl, function (data) {
+            value = data;
+            initError = false;
+        }).fail(function () {
+            vditor.tip("Get file request error", 0);
+            value = "Get file request error,Please reload";
+            initError = true;
+        })
+        return value;
+    }
+
+    const vditor = new Vditor('vditor', {
+        "theme": "dark",
+        "minHeight":$(window).height(),
+        "lang": "{{Lang}}",
+        "cache": {
+            "enable": false
+        },
+        "toolbar": [
+            {"name": "emoji", "tipPosition": "s"},
+            {"name": "headings", "tipPosition": "s"},
+            {"name": "bold", "tipPosition": "s"},
+            {"name": "italic", "tipPosition": "s"},
+            {"name": "strike", "tipPosition": "s"},
+            {"name": "link", "tipPosition": "s"},
+            "|",
+            {"name": "list", "tipPosition": "s"},
+            {"name": "ordered-list", "tipPosition": "s"},
+            {"name": "check", "tipPosition": "s"},
+            {"name": "outdent", "tipPosition": "s"},
+            {"name": "indent", "tipPosition": "s"},
+            "|",
+            {"name": "quote", "tipPosition": "s"},
+            {"name": "line", "tipPosition": "s"},
+            {"name": "code", "tipPosition": "s"},
+            {"name": "inline-code", "tipPosition": "s"},
+            {"name": "insert-before", "tipPosition": "s"},
+            {"name": "insert-after", "tipPosition": "s"},
+            {"name": "table", "tipPosition": "s"},
+            "|",
+            {"name": "undo", "tipPosition": "s"},
+            {"name": "redo", "tipPosition": "s"},
+            "|",
+            {"name": "edit-mode", "tipPosition": "s"},
+            {
+                name: "more",
+                toolbar: [
+                    "both",
+                    "code-theme",
+                    "content-theme",
+                    "outline",
+                    "preview",
+                    "devtools",
+                    {
+                        "name": "myInfo",
+                        "icon": "info",
+                        click(event, vditor) {
+                            vditor.tip.show(document.getElementById("editorInfo").innerHTML, 0);
+                        }
+                    }
+                ],
+            },
+        ],
+        "toolbarConfig": {"pin": true},
+        "cdn": 'http://localhost:{{port}}/d5762d7c-840b-4d0b-bd5d-639850d2b4e2/resources/vditor',
+        "preview": {
+            "theme": {
+                "current": "dark",
+                "path": "http://localhost:63343/d5762d7c-840b-4d0b-bd5d-639850d2b4e2/resources/vditor/dist/css/content-theme"
+            },
+            "actions": ["desktop", "tablet", "mobile"],
+            "math": {
+                "inlineDigit": true
+            }
+        },
+        "value": initValue(),
+        blur(md) {
+            editBlur(md)
+        },
+        focus(md) {
+            editFocus()
+        }
+    });
+
+</script>
+</html>

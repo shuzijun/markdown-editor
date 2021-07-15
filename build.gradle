@@ -1,0 +1,46 @@
+plugins {
+    id 'java-library'
+    id 'org.jetbrains.intellij' version '1.0'
+    id "de.undercouch.download" version "4.0.2"
+}
+
+group 'com.shuzijun.markdown'
+version (System.getenv('LD_VERSION')==null ? project.plugin_version :System.getenv('LD_VERSION'))
+
+sourceCompatibility = 11
+targetCompatibility = 11
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    api('io.sentry:sentry:1.7.9') {
+        exclude module: 'slf4j-api'
+    }
+    api 'org.apache.commons:commons-lang3:3.9'
+}
+
+// See https://github.com/JetBrains/gradle-intellij-plugin/
+intellij {
+    pluginName = 'markdown-editor'
+    version = project.intellij_version
+    type = 'IU'
+    downloadSources = true
+    updateSinceUntilBuild = false
+    buildSearchableOptions.enabled = false
+    ideaDependencyCachePath = "$gradle.gradleUserHomeDir/caches/modules-2/files-2.1/com.jetbrains.intellij.idea"
+    /* localPath project.idea_local_path
+     alternativeIdePath project.idea_local_path*/
+    plugins = project.intellij_plugins.split(",").toList()
+/*    prepareSandbox  {
+        from("src/main/natives" + (project.build_env.isEmpty() ? "" : "-") + project.build_env) { into(getPluginName() + '/natives') }
+    }*/
+
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+}
+
+
