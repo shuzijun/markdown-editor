@@ -79,6 +79,11 @@ public class PreviewStaticServer extends HttpRequestHandler {
     }
 
     @Override
+    public boolean isAccessible(@NotNull HttpRequest request) {
+        return true;
+    }
+
+    @Override
     public boolean isSupported(@NotNull FullHttpRequest request) {
         return (request.method() == HttpMethod.GET || request.method() == HttpMethod.HEAD || request.method() == HttpMethod.POST) && request.uri().startsWith(PREFIX);
     }
