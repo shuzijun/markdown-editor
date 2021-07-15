@@ -37,6 +37,7 @@
     $.ajaxSettings.async = false;
     const fileUrl = "http://localhost:{{port}}/d5762d7c-840b-4d0b-bd5d-639850d2b4e2/markdownFile?file={{filePath}}&projectUrl={{projectUrl}}&projectName={{projectName}}";
     let initError = true;
+    let saveTime = Date.now();
 
     function editBlur(md) {
         if (initError) {
@@ -48,15 +49,21 @@
                 vditor.tip("Failed to save file:" + data.message, 0);
             } else {
                 vditor.tip("Save success", 1000);
+                saveTime = Date.now() + 5000;
             }
         }).fail(function () {
             vditor.tip("Save file request error", 0);
         })
     }
 
-    function editFocus() {
+    function editFocus(md) {
+        if(Date.now()<=saveTime){
+            return;
+        }
         $.get(fileUrl, function (data) {
-            vditor.setValue(data);
+            if(md != data ){
+                vditor.setValue(data);
+            }
         }).fail(function () {
             vditor.tip("Get file request error", 0);
         })
@@ -144,7 +151,7 @@
             editBlur(md)
         },
         focus(md) {
-            editFocus()
+            editFocus(md)
         }
     });
 
