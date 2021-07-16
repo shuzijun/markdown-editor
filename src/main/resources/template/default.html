@@ -8,7 +8,7 @@
     <script src="http://localhost:{{port}}/d5762d7c-840b-4d0b-bd5d-639850d2b4e2/resources/vditor/jquery-3.6.0.min.js"></script>
 </head>
 <body class="body">
-<div id="vditor" class="vditor"></div>
+<div id="vditor" class="vditor vditor--fullscreen"></div>
 <div id="editorInfo" style="display:none;">
     <div style="max-width: 520px; font-size: 14px;line-height: 22px;margin-bottom: 14px;">
         <p style="text-align: center;margin: 14px 0">
@@ -36,6 +36,7 @@
 <script>
     $.ajaxSettings.async = false;
     const fileUrl = "http://localhost:{{port}}/d5762d7c-840b-4d0b-bd5d-639850d2b4e2/markdownFile?file={{filePath}}&projectUrl={{projectUrl}}&projectName={{projectName}}";
+    const uploadUrl = "http://localhost:{{port}}/d5762d7c-840b-4d0b-bd5d-639850d2b4e2/uploadFile?file={{filePath}}&projectUrl={{projectUrl}}&projectName={{projectName}}";
     let initError = true;
     let saveTime = Date.now();
 
@@ -110,6 +111,7 @@
             {"name": "insert-before", "tipPosition": "s"},
             {"name": "insert-after", "tipPosition": "s"},
             {"name": "table", "tipPosition": "s"},
+            {"name": "upload", "tipPosition": "s"},
             "|",
             {"name": "undo", "tipPosition": "s"},
             {"name": "redo", "tipPosition": "s"},
@@ -141,10 +143,17 @@
                 "current": "dark",
                 "path": "http://localhost:{{port}}/d5762d7c-840b-4d0b-bd5d-639850d2b4e2/resources/vditor/dist/css/content-theme"
             },
+            "maxWidth": $(window).width() - 100,
             "actions": ["desktop", "tablet", "mobile"],
             "math": {
                 "inlineDigit": true
             }
+        },
+        "counter": {
+            "enable": true
+        },
+        "upload": {
+          "url": uploadUrl
         },
         "value": initValue(),
         blur(md) {

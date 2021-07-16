@@ -13,11 +13,15 @@ import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.util.Url;
 import com.intellij.util.Urls;
 import com.shuzijun.markdown.model.MarkdownResponse;
+import com.shuzijun.markdown.model.UploadResponse;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
-import io.netty.util.CharsetUtil;
+import io.netty.handler.codec.http.multipart.Attribute;
+import io.netty.handler.codec.http.multipart.FileUpload;
+import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
+import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.BuiltInServerManager;
@@ -25,10 +29,10 @@ import org.jetbrains.ide.HttpRequestHandler;
 import org.jetbrains.io.FileResponses;
 import org.jetbrains.io.Responses;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -91,7 +95,7 @@ public class PreviewStaticServer extends HttpRequestHandler {
     @Override
     public boolean process(@NotNull QueryStringDecoder urlDecoder,
                            @NotNull FullHttpRequest request,
-                           @NotNull ChannelHandlerContext context) {
+                           @NotNull ChannelHandlerContext context) throws IOException {
         final String path = urlDecoder.path();
         if (!path.startsWith(PREFIX)) {
             throw new IllegalStateException("prefix should have been checked by #isSupported");
@@ -99,38 +103,81 @@ public class PreviewStaticServer extends HttpRequestHandler {
 
         final String payLoad = path.substring(PREFIX.length());
 
-        if (payLoad.startsWith("resources") ) {
+        if (payLoad.startsWith("resources")) {
             sendResource(request,
                     context.channel(),
                     payLoad.substring("resources".length()));
-        }else if(payLoad.startsWith("markdownFile")){
+        } else if (payLoad.startsWith("markdownFile")) {
             String fileParameter = getParameter(urlDecoder, "file");
             String projectNameParameter = getParameter(urlDecoder, "projectName");
             String projectUrlParameter = getParameter(urlDecoder, "projectUrl");
             VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByPath(fileParameter);
             if (virtualFile == null) {
-                sendJson(request, context.channel(),MarkdownResponse.error("unable to to find file "+fileParameter).toString());
+                sendJson(request, context.channel(), MarkdownResponse.error("unable to to find file " + fileParameter).toString());
                 return true;
             }
             Document document = ApplicationManager.getApplication().runReadAction((Computable<Document>) () -> FileDocumentManager.getInstance().getDocument(virtualFile));
-            if(request.method() == HttpMethod.POST){
-               String body = request.content().toString(CharsetUtil.UTF_8);
-               if(body.startsWith("value=")) {
-                   ApplicationManager.getApplication().invokeLaterOnWriteThread((() -> {
-                       ApplicationManager.getApplication().runWriteAction(()->{
-                           document.setText(URLDecoder.decode(body.substring("value=".length()), CharsetUtil.UTF_8));
-                           FileDocumentManager.getInstance().saveDocument(document);
-                           sendJson(request, context.channel(),MarkdownResponse.success("").toString());
-                       });
-                   }));
-               }else {
-                   sendJson(request, context.channel(), MarkdownResponse.error("The requested content is not supported").toString());
-               }
-                return true;
-            }else {
-                sendHtml(request, context.channel(),document.getText());
+            if (request.method() == HttpMethod.POST) {
+                HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(request);
+                InterfaceHttpData valueData = decoder.getBodyHttpData("value");
+                if (valueData != null && valueData.getHttpDataType() == InterfaceHttpData.HttpDataType.Attribute) {
+                    String value = ((Attribute) valueData).getValue();
+                    ApplicationManager.getApplication().invokeLaterOnWriteThread((() -> {
+                        ApplicationManager.getApplication().runWriteAction(() -> {
+                            document.setText(value);
+                            FileDocumentManager.getInstance().saveDocument(document);
+                            sendJson(request, context.channel(), MarkdownResponse.success("").toString());
+                        });
+                    }));
+                } else {
+                    sendJson(request, context.channel(), MarkdownResponse.error("The requested content is not supported").toString());
+                }
+            } else {
+                sendHtml(request, context.channel(), document.getText());
+            }
+            return true;
+        } else if (payLoad.startsWith("uploadFile")) {
+            String fileParameter = getParameter(urlDecoder, "file");
+            String projectNameParameter = getParameter(urlDecoder, "projectName");
+            String projectUrlParameter = getParameter(urlDecoder, "projectUrl");
+            File markdownFile = new File(fileParameter);
+            if (!markdownFile.exists()) {
+                sendJson(request, context.channel(), UploadResponse.error("unable to to find file " + fileParameter).toString());
                 return true;
             }
+            String assetsPath = markdownFile.getParent() + File.separator + "assets" + File.separator;
+            File assetsFile = new File(assetsPath);
+            if (!assetsFile.exists()) {
+                assetsFile.mkdirs();
+            }
+
+            if (request.method() == HttpMethod.POST) {
+                HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(request);
+                List<InterfaceHttpData> datas = decoder.getBodyHttpDatas();
+                UploadResponse.Data uploadResponseData = new UploadResponse.Data();
+                for (InterfaceHttpData data : datas) {
+                    if (data.getHttpDataType() == InterfaceHttpData.HttpDataType.FileUpload) {
+                        FileUpload fileUpload = (FileUpload) data;
+                        String fileName = fileUpload.getFilename();
+                        if (fileUpload.isCompleted()) {
+                            String newFileName = fileName;
+                            File file = new File(assetsPath + newFileName);
+                            if (file.exists()) {
+                                newFileName = System.currentTimeMillis() + "-" + newFileName;
+                                file = new File(assetsPath + newFileName);
+                            }
+                            fileUpload.renameTo(file);
+                            uploadResponseData.addSuccMap(fileName, "./assets/" + newFileName);
+                        } else {
+                            uploadResponseData.addErrFiles(fileName);
+                        }
+                    }
+                }
+                sendJson(request, context.channel(), UploadResponse.success(uploadResponseData).toString());
+            } else {
+                sendJson(request, context.channel(), UploadResponse.error("The requested content is not supported").toString());
+            }
+            return true;
         } else {
             return false;
         }
@@ -149,7 +196,7 @@ public class PreviewStaticServer extends HttpRequestHandler {
 
 
     private static void sendJson(@NotNull HttpRequest request,
-                                 @NotNull Channel channel,String markdownResponse){
+                                 @NotNull Channel channel, String markdownResponse) {
         FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, Unpooled.wrappedBuffer(markdownResponse.getBytes(StandardCharsets.UTF_8)));
         response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json;charset=UTF-8");
         response.headers().set(HttpHeaderNames.CACHE_CONTROL, "max-age=5, private, must-revalidate");
@@ -158,7 +205,7 @@ public class PreviewStaticServer extends HttpRequestHandler {
     }
 
     private static void sendHtml(@NotNull HttpRequest request,
-                                 @NotNull Channel channel,String markdownResponse){
+                                 @NotNull Channel channel, String markdownResponse) {
         FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, Unpooled.wrappedBuffer(markdownResponse.getBytes(StandardCharsets.UTF_8)));
         response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain;charset=UTF-8");
         response.headers().set(HttpHeaderNames.CACHE_CONTROL, "max-age=5, private, must-revalidate");

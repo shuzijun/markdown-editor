@@ -1,6 +1,8 @@
 package com.shuzijun.markdown.model;
 
 
+import com.alibaba.fastjson.JSON;
+
 /**
  * @author shuzijun
  */
@@ -56,13 +58,7 @@ public class MarkdownResponse {
 
     @Override
     public String toString() {
-        return "{\"success\":"
-                + success
-                + ",\"message\":\""
-                + message + '\"'
-                + ",\"data\":\""
-                + data + '\"'
-                + "}";
+        return JSON.toJSONString(this);
 
     }
 }

@@ -32,7 +32,7 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
 
     private final Project myProject;
     private final VirtualFile myFile;
-    private final  Document myDocument;
+    private final Document myDocument;
 
     private final JPanel myHtmlPanelWrapper;
     private final JCEFHtmlPanel myPanel;
@@ -47,7 +47,6 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
         myHtmlPanelWrapper.add(myPanel.getComponent(), BorderLayout.CENTER);
         myHtmlPanelWrapper.repaint();
     }
-
 
 
     @Override
@@ -102,10 +101,10 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
         }
     }
 
-    private String createHtml(){
+    private String createHtml() {
         try (InputStream inputStream = PreviewStaticServer.class.getResourceAsStream("/template/default.html")) {
-           String  template = new String(FileUtilRt.loadBytes(inputStream));
-            return template.replace("{{port}}", BuiltInServerManager.getInstance().getPort()+"")
+            String template = new String(FileUtilRt.loadBytes(inputStream));
+            return template.replace("{{port}}", BuiltInServerManager.getInstance().getPort() + "")
                     .replace("{{filePath}}", myFile.getPath())
                     .replace("{{Lang}}", PropertiesUtils.getInfo("Lang"))
                     ;
@@ -119,10 +118,10 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
         return myFile;
     }
 
-    private String separator(){
-        if(File.separator.equals("\\")){
+    private String separator() {
+        if (File.separator.equals("\\")) {
             return "/";
-        }else {
+        } else {
             return "";
         }
     }
