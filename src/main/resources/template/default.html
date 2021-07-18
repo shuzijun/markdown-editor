@@ -39,6 +39,7 @@
     const uploadUrl = "http://localhost:{{port}}/d5762d7c-840b-4d0b-bd5d-639850d2b4e2/uploadFile?file={{filePath}}&projectUrl={{projectUrl}}&projectName={{projectName}}";
     let initError = true;
     let saveTime = Date.now();
+    let darcula = {{darcula}};
 
     function editBlur(md) {
         if (initError) {
@@ -84,7 +85,7 @@
     }
 
     const vditor = new Vditor('vditor', {
-        "theme": "dark",
+        "theme": darcula?"dark":"light",
         "minHeight":$(window).height(),
         "lang": "{{Lang}}",
         "cache": {
@@ -140,11 +141,12 @@
         "cdn": 'http://localhost:{{port}}/d5762d7c-840b-4d0b-bd5d-639850d2b4e2/resources/vditor',
         "preview": {
             "theme": {
-                "current": "dark",
+                "current": darcula?"idea-dark":"idea-light",
                 "path": "http://localhost:{{port}}/d5762d7c-840b-4d0b-bd5d-639850d2b4e2/resources/vditor/dist/css/content-theme"
             },
             "maxWidth": $(window).width() - 100,
             "actions": ["desktop", "tablet", "mobile"],
+            "hljs":{"style":darcula?"dracula":"github"},
             "math": {
                 "inlineDigit": true
             }

@@ -2,7 +2,9 @@
     margin: 0px;
 }
 .vditor {
+    border: 0px;
     border-radius: 0px;
+
 }
 ::-webkit-scrollbar {
     width: 8px; height: 8px;

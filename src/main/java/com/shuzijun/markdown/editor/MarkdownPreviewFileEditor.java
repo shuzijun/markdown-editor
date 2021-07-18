@@ -12,6 +12,8 @@ import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.jcef.JCEFHtmlPanel;
 import com.intellij.util.io.URLUtil;
+import com.intellij.util.ui.UIUtil;
+import com.shuzijun.markdown.util.FileUtils;
 import com.shuzijun.markdown.util.PropertiesUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
@@ -21,7 +23,6 @@ import org.jetbrains.ide.BuiltInServerManager;
 import javax.swing.*;
 import java.awt.*;
 import java.beans.PropertyChangeListener;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -42,8 +43,9 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
         myFile = file;
         myDocument = FileDocumentManager.getInstance().getDocument(myFile);
         myHtmlPanelWrapper = new JPanel(new BorderLayout());
-        myPanel = new JCEFHtmlPanel("about:blank");
-        myPanel.loadHTML(createHtml(), URLUtil.FILE_PROTOCOL + URLUtil.SCHEME_SEPARATOR + separator() + myFile.getPath());
+        String url = URLUtil.FILE_PROTOCOL + URLUtil.SCHEME_SEPARATOR + FileUtils.separator() + myFile.getPath();
+        myPanel = new MarkdownHtmlPanel(url,project);
+        myPanel.loadHTML(createHtml(), url);
         myHtmlPanelWrapper.add(myPanel.getComponent(), BorderLayout.CENTER);
         myHtmlPanelWrapper.repaint();
     }
@@ -107,6 +109,7 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
             return template.replace("{{port}}", BuiltInServerManager.getInstance().getPort() + "")
                     .replace("{{filePath}}", myFile.getPath())
                     .replace("{{Lang}}", PropertiesUtils.getInfo("Lang"))
+                    .replace("{{darcula}}", UIUtil.isUnderDarcula()+"")
                     ;
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -118,11 +121,4 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
         return myFile;
     }
 
-    private String separator() {
-        if (File.separator.equals("\\")) {
-            return "/";
-        } else {
-            return "";
-        }
-    }
 }
