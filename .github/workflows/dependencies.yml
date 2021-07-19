@@ -12,7 +12,7 @@ on:
 jobs:
   # This workflow contains a single job called "build"
   build:
-    if: ${{ github.event.label.name == 'dependencies' }}
+    if: ${{ github.event.label.name == 'dependencies approval' }}
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
