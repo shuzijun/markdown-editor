@@ -1,6 +1,6 @@
 {
   "lockfileVersion": 1,
   "dependencies": {
-    "vditor": "3.8.6"
+    "copy-webpack-plugin": "6.0.0"
   }
 }
