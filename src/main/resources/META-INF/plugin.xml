@@ -7,8 +7,23 @@
     <description>
         <![CDATA[
             <div>
-                <p>IntelliJ Platform A full-featured WYSIWYG editor for markdown
+                <p>IntelliJ Platform A full-featured WYSIWYG editor for markdown,
                 More tutorial please visit: <a href="https://github.com/shuzijun/markdown-editor">here</a></p>
+                <p>IntelliJ平台一个功能齐全的所见即所得Markdown编辑器
+                更多教程请访问: <a href="https://github.com/shuzijun/markdown-editor">帮助</a></p>
+            </div>
+            <br>
+            <div>
+                <h3>Features</h3>
+                <ul>
+                    <li>Support three editing modes: WYSIWYG, Instant Rendering and Split View</li>
+                    <li>Support outline, mathematical formulas, mind maps, charts, flowcharts, Gantt charts, timing charts,  heading anchors, code highlighting, graphviz rendering.</li>
+                    <li>Support picture paste, file upload or drag and insert quickly.</li>
+                    <li>Support using IDE to open files quickly</li>
+                    <li>More function reference <a href="https://github.com/Vanessa219/vditor/blob/master/README_en_US.md#--features">vditor features</a></li>
+                </ul>
+                <h3>Demo</h3>
+                <p><img src="https://github.com/shuzijun/markdown-editor/blob/main/assets/demo.gif" alt="demo.gif" /></p>
             </div>
          ]]>
     </description>
