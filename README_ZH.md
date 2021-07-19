@@ -15,7 +15,7 @@ IntelliJ平台一个功能齐全的所见即所得Markdown编辑器
 
 # 演示
 
-![demo.gif](https://github.com/shuzijun/markdown-editor/blob/main/assets/demo.gif)
+![demo.gif](https://raw.githubusercontent.com/shuzijun/markdown-editor/main/assets/demo.gif)
 
 # 感谢
 

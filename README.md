@@ -15,7 +15,7 @@ IntelliJ Platform A full-featured WYSIWYG editor for markdown
 
 # Demo
 
-![demo.gif](https://github.com/shuzijun/markdown-editor/blob/main/assets/demo.gif)
+![demo.gif](https://raw.githubusercontent.com/shuzijun/markdown-editor/main/assets/demo.gif)
 
 # Acknowledgement
 
