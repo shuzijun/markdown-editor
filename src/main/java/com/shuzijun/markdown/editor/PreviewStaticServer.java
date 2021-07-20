@@ -33,6 +33,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -191,7 +192,7 @@ public class PreviewStaticServer extends HttpRequestHandler {
         if (parameters == null || parameters.size() != 1) {
             return null;
         }
-        return parameters.get(0);
+        return URLDecoder.decode(parameters.get(0),StandardCharsets.UTF_8);
     }
 
 

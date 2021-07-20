@@ -1,5 +1,6 @@
 package com.shuzijun.markdown.editor;
 
+import com.google.common.net.UrlEscapers;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -43,7 +44,7 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
         myFile = file;
         myDocument = FileDocumentManager.getInstance().getDocument(myFile);
         myHtmlPanelWrapper = new JPanel(new BorderLayout());
-        String url = URLUtil.FILE_PROTOCOL + URLUtil.SCHEME_SEPARATOR + FileUtils.separator() + myFile.getPath();
+        String url = UrlEscapers.urlFragmentEscaper().escape(URLUtil.FILE_PROTOCOL + URLUtil.SCHEME_SEPARATOR + FileUtils.separator() + myFile.getPath());
         myPanel = new MarkdownHtmlPanel(url,project);
         myPanel.loadHTML(createHtml(), url);
         myHtmlPanelWrapper.add(myPanel.getComponent(), BorderLayout.CENTER);
@@ -107,7 +108,7 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
         try (InputStream inputStream = PreviewStaticServer.class.getResourceAsStream("/template/default.html")) {
             String template = new String(FileUtilRt.loadBytes(inputStream));
             return template.replace("{{port}}", BuiltInServerManager.getInstance().getPort() + "")
-                    .replace("{{filePath}}", myFile.getPath())
+                    .replace("{{filePath}}", UrlEscapers.urlFragmentEscaper().escape(myFile.getPath()))
                     .replace("{{Lang}}", PropertiesUtils.getInfo("Lang"))
                     .replace("{{darcula}}", UIUtil.isUnderDarcula()+"")
                     ;

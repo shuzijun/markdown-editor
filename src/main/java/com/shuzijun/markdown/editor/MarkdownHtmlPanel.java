@@ -27,6 +27,8 @@ import org.cef.network.CefRequest;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author shuzijun
@@ -45,10 +47,11 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
         getJBCefClient().addRequestHandler(requestHandler = new CefRequestHandlerAdapter() {
             @Override
             public boolean onBeforeBrowse(CefBrowser browser, CefFrame frame, CefRequest request, boolean user_gesture, boolean is_redirect) {
-                if (url.equals(request.getURL())) {
+                String requestUrl =request.getURL();
+                if (url.equals(requestUrl)) {
                     return false;
                 } else {
-                    openUrl(request.getURL());
+                    openUrl(URLDecoder.decode(requestUrl, StandardCharsets.UTF_8));
                     return true;
                 }
             }
@@ -56,6 +59,7 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
         getJBCefClient().addLifeSpanHandler(lifeSpanHandler = new CefLifeSpanHandlerAdapter() {
             @Override
             public boolean onBeforePopup(CefBrowser browser, CefFrame frame, String target_url, String target_frame_name) {
+                target_url = URLDecoder.decode(target_url, StandardCharsets.UTF_8);
                 openUrl(target_url);
                 return true;
             }
@@ -72,7 +76,9 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
     private void openUrl(String url) {
         if (url.startsWith(URLUtil.FILE_PROTOCOL)) {
             File file = new File(url.substring((URLUtil.FILE_PROTOCOL + URLUtil.SCHEME_SEPARATOR + FileUtils.separator()).length()));
-            if (file.isDirectory()) {
+            if(!file.exists()){
+                Notifications.Bus.notify(new Notification(PluginConstant.NOTIFICATION_GROUP, "Cannot Open File", file.getPath() + " not exist", NotificationType.INFORMATION), project);
+            } else if (file.isDirectory()) {
                 Notifications.Bus.notify(new Notification(PluginConstant.NOTIFICATION_GROUP, "Cannot Open Directory", file.getPath() + " is a directory", NotificationType.INFORMATION), project);
             } else {
                 ApplicationManager.getApplication().invokeLater(() -> {
