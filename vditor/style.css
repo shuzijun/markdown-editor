@@ -1,0 +1,21 @@
+.body {
+    margin: 0px;
+}
+.vditor {
+    border: 0px;
+    border-radius: 0px;
+
+}
+::-webkit-scrollbar {
+    width: 8px; height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: rgba(0,0,0,.3);
+    border-radius: 0px;
+}
+
+::-webkit-scrollbar-track {
+    background-color: #ddd;
+    border-radius: 0px;
+}
