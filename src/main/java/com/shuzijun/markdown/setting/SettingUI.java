@@ -1,0 +1,96 @@
+package com.shuzijun.markdown.setting;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.util.io.HttpRequests;
+import com.shuzijun.markdown.model.PluginConstant;
+import com.shuzijun.markdown.util.FileUtils;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
+import java.util.Comparator;
+import java.util.stream.Collectors;
+
+/**
+ * @author shuzijun
+ */
+public class SettingUI {
+
+    private JPanel mainPanel;
+    private JButton syncButton;
+    private TextFieldWithBrowseButton templatePathField;
+
+    public SettingUI() {
+        templatePathField.setText(PluginConstant.TEMPLATE_PATH);
+        syncButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                ApplicationManager.getApplication().executeOnPooledThread(() -> {
+                    syncButton.setEnabled(false);
+                    try {
+                        sync(templatePathField.getText());
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                        syncButton.setForeground(Color.RED);
+                        syncButton.setToolTipText("Synchronization failure");
+                    }finally {
+                        syncButton.setForeground(Color.BLUE);
+                        syncButton.setToolTipText("Synchronous success");
+                        syncButton.setEnabled(true);
+                    }
+                });
+            }
+        });
+    }
+
+    public JPanel getContentPane() {
+        return mainPanel;
+    }
+
+    public boolean isModified() {
+        return false;
+    }
+
+    public void apply() {
+
+    }
+
+    public void reset() {
+
+    }
+
+    public void disposeUIResources() {
+
+    }
+
+    private static final  String jsDelivrEndpoints = "https://data.jsdelivr.com/v1/package/gh/shuzijun/markdown-editor";
+    private static final String cdn = "https://cdn.jsdelivr.net/gh/shuzijun/markdown-editor@";
+
+    private static void sync(String filePath) throws IOException {
+        String versionStr = HttpRequests.request(jsDelivrEndpoints).readString();
+        String version = JSONObject.parseObject(versionStr).getJSONArray("versions").toJavaList(String.class)
+                .stream().filter(v -> v.startsWith("template@" + PluginConstant.TEMPLATE_VERSION))
+                .sorted(Comparator.comparing(String::toString).reversed())
+                .collect(Collectors.toList()).get(0);
+        String filesStr = HttpRequests.request(jsDelivrEndpoints + "@" + version).readString();
+        saveFile(JSONObject.parseObject(filesStr).getJSONArray("files"), version, "", filePath);
+    }
+
+    private static void saveFile(JSONArray fileArray, String version, String path, String filePath) throws IOException {
+        for (int i = 0; i < fileArray.size(); i++) {
+            JSONObject fileObject = fileArray.getJSONObject(i);
+            String name = fileObject.getString("name");
+            if (fileObject.getString("type").equals("directory")) {
+                saveFile(fileObject.getJSONArray("files"), version, path + name + "/", filePath);
+            } else {
+                String value = HttpRequests.request(cdn + version + "/" + path + name).readString();
+                FileUtils.saveFile(new File(filePath + path + name), value);
+            }
+        }
+    }
+}

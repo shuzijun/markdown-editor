@@ -14,6 +14,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.jcef.JCEFHtmlPanel;
 import com.intellij.util.io.URLUtil;
 import com.intellij.util.ui.UIUtil;
+import com.shuzijun.markdown.model.PluginConstant;
 import com.shuzijun.markdown.util.FileUtils;
 import com.shuzijun.markdown.util.PropertiesUtils;
 import org.jetbrains.annotations.Nls;
@@ -24,6 +25,8 @@ import org.jetbrains.ide.BuiltInServerManager;
 import javax.swing.*;
 import java.awt.*;
 import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -39,13 +42,16 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
     private final JPanel myHtmlPanelWrapper;
     private final JCEFHtmlPanel myPanel;
 
+    private final String servicePath = "http://localhost:" + BuiltInServerManager.getInstance().getPort() + PreviewStaticServer.PREFIX;
+    private final String templateHtmlFile = "template/default.html";
+
     public MarkdownPreviewFileEditor(@NotNull Project project, @NotNull VirtualFile file) {
         myProject = project;
         myFile = file;
         myDocument = FileDocumentManager.getInstance().getDocument(myFile);
         myHtmlPanelWrapper = new JPanel(new BorderLayout());
         String url = UrlEscapers.urlFragmentEscaper().escape(URLUtil.FILE_PROTOCOL + URLUtil.SCHEME_SEPARATOR + FileUtils.separator() + myFile.getPath());
-        myPanel = new MarkdownHtmlPanel(url,project);
+        myPanel = new MarkdownHtmlPanel(url, project);
         myPanel.loadHTML(createHtml(), url);
         myHtmlPanelWrapper.add(myPanel.getComponent(), BorderLayout.CENTER);
         myHtmlPanelWrapper.repaint();
@@ -105,15 +111,31 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
     }
 
     private String createHtml() {
-        try (InputStream inputStream = PreviewStaticServer.class.getResourceAsStream("/template/default.html")) {
+        InputStream inputStream = null;
+
+        try {
+            File templateFile = new File(PluginConstant.TEMPLATE_PATH + templateHtmlFile);
+            if (templateFile.exists()) {
+                inputStream = new FileInputStream(templateFile);
+            } else {
+                inputStream = PreviewStaticServer.class.getResourceAsStream("/" + templateHtmlFile);
+            }
             String template = new String(FileUtilRt.loadBytes(inputStream));
-            return template.replace("{{port}}", BuiltInServerManager.getInstance().getPort() + "")
+            return template.replace("{{service}}", servicePath)
                     .replace("{{filePath}}", UrlEscapers.urlFragmentEscaper().escape(myFile.getPath()))
                     .replace("{{Lang}}", PropertiesUtils.getInfo("Lang"))
-                    .replace("{{darcula}}", UIUtil.isUnderDarcula()+"")
+                    .replace("{{darcula}}", UIUtil.isUnderDarcula() + "")
+                    .replace("{{userTemplate}}",templateFile.exists()+"")
                     ;
         } catch (IOException e) {
             throw new RuntimeException(e);
+        } finally {
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException ignore) {
+                }
+            }
         }
     }
 

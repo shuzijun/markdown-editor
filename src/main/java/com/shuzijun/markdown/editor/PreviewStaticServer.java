@@ -13,6 +13,7 @@ import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.util.Url;
 import com.intellij.util.Urls;
 import com.shuzijun.markdown.model.MarkdownResponse;
+import com.shuzijun.markdown.model.PluginConstant;
 import com.shuzijun.markdown.model.UploadResponse;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -29,10 +30,7 @@ import org.jetbrains.ide.HttpRequestHandler;
 import org.jetbrains.io.FileResponses;
 import org.jetbrains.io.Responses;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -46,7 +44,7 @@ public class PreviewStaticServer extends HttpRequestHandler {
 
     private static final Logger LOG = Logger.getInstance(PreviewStaticServer.class);
 
-    private static final String PREFIX = "/d5762d7c-840b-4d0b-bd5d-639850d2b4e2/";
+    public static final String PREFIX = "/d5762d7c-840b-4d0b-bd5d-639850d2b4e2/";
 
     // every time the plugin starts up, assume resources could have been modified
     private static final long LAST_MODIFIED = System.currentTimeMillis();
@@ -108,6 +106,10 @@ public class PreviewStaticServer extends HttpRequestHandler {
             sendResource(request,
                     context.channel(),
                     payLoad.substring("resources".length()));
+        } else if (payLoad.startsWith("assets")) {
+                sendAssets(request,
+                        context.channel(),
+                        payLoad.substring("assets".length()+1));
         } else if (payLoad.startsWith("markdownFile")) {
             String fileParameter = getParameter(urlDecoder, "file");
             String projectNameParameter = getParameter(urlDecoder, "projectName");
@@ -239,4 +241,28 @@ public class PreviewStaticServer extends HttpRequestHandler {
         Responses.send(response, channel, request);
     }
 
+    private static void sendAssets(@NotNull HttpRequest request,
+                                     @NotNull Channel channel,
+                                     @NotNull String resourceName) {
+
+        byte[] data;
+        try (InputStream inputStream = new FileInputStream(PluginConstant.TEMPLATE_PATH + resourceName)) {
+            if (inputStream == null) {
+                Responses.send(HttpResponseStatus.NOT_FOUND, channel, request);
+                return;
+            }
+
+            data = FileUtilRt.loadBytes(inputStream);
+        } catch (IOException e) {
+            LOG.warn(e);
+            Responses.send(HttpResponseStatus.INTERNAL_SERVER_ERROR, channel, request);
+            return;
+        }
+
+        FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, Unpooled.wrappedBuffer(data));
+        response.headers().set(HttpHeaderNames.CONTENT_TYPE, FileResponses.INSTANCE.getContentType(resourceName) + "; charset=utf-8");
+        response.headers().set(HttpHeaderNames.CACHE_CONTROL, "max-age=0, private, must-revalidate");
+        response.headers().set(HttpHeaderNames.ETAG, Long.toString(LAST_MODIFIED));
+        Responses.send(response, channel, request);
+    }
 }
