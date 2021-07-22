@@ -1,6 +1,6 @@
 <idea-plugin>
     <id>com.shuzijun.markdown-editor</id>
-    <name>markdown editor</name>
+    <name>Markdown Editor</name>
     <version>1.0</version>
     <vendor email="shuzijun0109@gmail.com">shuzijun</vendor>
 
@@ -38,8 +38,9 @@
                   implementationClass="com.shuzijun.markdown.editor.MarkdownFileType" fieldName="INSTANCE"/>-->
         <fileEditorProvider implementation="com.shuzijun.markdown.editor.MarkdownPreviewFileEditorProvider"/>
         <httpRequestHandler implementation="com.shuzijun.markdown.editor.PreviewStaticServer"/>
-        <applicationConfigurable groupId="tools" displayName="markdown editor" id="markdown editor"
+        <applicationConfigurable groupId="tools" displayName="Markdown Editor" id="Markdown Editor"
                                  instance="com.shuzijun.markdown.setting.SettingConfigurable"/>
+        <errorHandler implementation="com.shuzijun.markdown.listener.ErrorReportHandler"/>
     </extensions>
 
     <actions>
