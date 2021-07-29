@@ -1,6 +1,7 @@
 package com.shuzijun.markdown.editor;
 
 import com.google.common.net.UrlEscapers;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -11,9 +12,12 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.jcef.JCEFHtmlPanel;
 import com.intellij.util.io.URLUtil;
 import com.intellij.util.ui.UIUtil;
+import com.shuzijun.markdown.controller.FileApplicationService;
+import com.shuzijun.markdown.controller.PreviewStaticServer;
 import com.shuzijun.markdown.model.PluginConstant;
 import com.shuzijun.markdown.util.FileUtils;
 import com.shuzijun.markdown.util.PropertiesUtils;
@@ -44,17 +48,27 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
 
     private final String servicePath = "http://localhost:" + BuiltInServerManager.getInstance().getPort() + PreviewStaticServer.PREFIX;
     private final String templateHtmlFile = "template/default.html";
+    private final boolean isPresentableUrl;
 
     public MarkdownPreviewFileEditor(@NotNull Project project, @NotNull VirtualFile file) {
         myProject = project;
         myFile = file;
         myDocument = FileDocumentManager.getInstance().getDocument(myFile);
         myHtmlPanelWrapper = new JPanel(new BorderLayout());
+        isPresentableUrl = project.getPresentableUrl() != null;
         String url = UrlEscapers.urlFragmentEscaper().escape(URLUtil.FILE_PROTOCOL + URLUtil.SCHEME_SEPARATOR + FileUtils.separator() + myFile.getPath());
-        myPanel = new MarkdownHtmlPanel(url, project);
-        myPanel.loadHTML(createHtml(), url);
-        myHtmlPanelWrapper.add(myPanel.getComponent(), BorderLayout.CENTER);
+        JCEFHtmlPanel tempPanel = null;
+        try {
+            tempPanel = new MarkdownHtmlPanel(url, project);
+            tempPanel.loadHTML(createHtml(isPresentableUrl), url);
+            myHtmlPanelWrapper.add(tempPanel.getComponent(), BorderLayout.CENTER);
+        } catch (IllegalStateException e) {
+            myHtmlPanelWrapper.add(new JBLabel(e.getMessage()), BorderLayout.CENTER);
+        }
+        myPanel = tempPanel;
         myHtmlPanelWrapper.repaint();
+        FileApplicationService fileApplicationService = ApplicationManager.getApplication().getService(FileApplicationService.class);
+        fileApplicationService.putVirtualFile(myFile.getPath(), isPresentableUrl ? project.getPresentableUrl() : project.getName(), myFile);
     }
 
 
@@ -105,12 +119,14 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
 
     @Override
     public void dispose() {
+        ApplicationManager.getApplication().getService(FileApplicationService.class)
+                .removeVirtualFile(myFile.getPath(), isPresentableUrl ? myProject.getPresentableUrl() : myProject.getName());
         if (myPanel != null) {
             Disposer.dispose(myPanel);
         }
     }
 
-    private String createHtml() {
+    private String createHtml(boolean isPresentableUrl) {
         InputStream inputStream = null;
 
         try {
@@ -125,7 +141,9 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
                     .replace("{{filePath}}", UrlEscapers.urlFragmentEscaper().escape(myFile.getPath()))
                     .replace("{{Lang}}", PropertiesUtils.getInfo("Lang"))
                     .replace("{{darcula}}", UIUtil.isUnderDarcula() + "")
-                    .replace("{{userTemplate}}",templateFile.exists()+"")
+                    .replace("{{userTemplate}}", templateFile.exists() + "")
+                    .replace("{{projectUrl}}", isPresentableUrl ? myProject.getPresentableUrl() : "")
+                    .replace("{{projectName}}", isPresentableUrl ? "" : myProject.getName())
                     ;
         } catch (IOException e) {
             throw new RuntimeException(e);

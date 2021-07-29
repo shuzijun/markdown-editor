@@ -7,6 +7,7 @@ import com.intellij.openapi.fileEditor.WeighedFileEditorProvider;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.jcef.JBCefApp;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -16,7 +17,7 @@ public class MarkdownPreviewFileEditorProvider  extends WeighedFileEditorProvide
     @Override
     public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
         FileType fileType = file.getFileType();
-        return fileType.getDefaultExtension().equals("md");
+        return fileType.getDefaultExtension().equals("md") && JBCefApp.isSupported();
     }
 
     @NotNull

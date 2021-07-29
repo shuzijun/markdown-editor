@@ -28,7 +28,7 @@
          ]]>
     </description>
 
-    <idea-version since-build="201.0"/>
+    <idea-version since-build="202.0"/>
     <!-- please see https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html
          on how to target different products -->
     <depends>com.intellij.modules.lang</depends>
@@ -37,10 +37,13 @@
         <!--<fileType name="Markdown Editor" extensions="md;markdown" language="Markdown Editor"
                   implementationClass="com.shuzijun.markdown.editor.MarkdownFileType" fieldName="INSTANCE"/>-->
         <fileEditorProvider implementation="com.shuzijun.markdown.editor.MarkdownPreviewFileEditorProvider"/>
-        <httpRequestHandler implementation="com.shuzijun.markdown.editor.PreviewStaticServer"/>
+        <httpRequestHandler implementation="com.shuzijun.markdown.controller.PreviewStaticServer"/>
         <applicationConfigurable groupId="tools" displayName="Markdown Editor" id="Markdown Editor"
                                  instance="com.shuzijun.markdown.setting.SettingConfigurable"/>
         <errorHandler implementation="com.shuzijun.markdown.listener.ErrorReportHandler"/>
+        <postStartupActivity implementation="com.shuzijun.markdown.listener.SupportCheck"/>
+        <applicationService serviceInterface="com.shuzijun.markdown.controller.FileApplicationService"
+                            serviceImplementation="com.shuzijun.markdown.controller.FileApplicationService" />
     </extensions>
 
     <actions>
