@@ -14,6 +14,8 @@ import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.jcef.JCEFHtmlPanel;
+import com.intellij.util.Url;
+import com.intellij.util.Urls;
 import com.intellij.util.io.URLUtil;
 import com.intellij.util.ui.UIUtil;
 import com.shuzijun.markdown.controller.FileApplicationService;
@@ -21,6 +23,7 @@ import com.shuzijun.markdown.controller.PreviewStaticServer;
 import com.shuzijun.markdown.model.PluginConstant;
 import com.shuzijun.markdown.util.FileUtils;
 import com.shuzijun.markdown.util.PropertiesUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,7 +49,7 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
     private final JPanel myHtmlPanelWrapper;
     private final JCEFHtmlPanel myPanel;
 
-    private final String servicePath = "http://localhost:" + BuiltInServerManager.getInstance().getPort() + PreviewStaticServer.PREFIX;
+    private final Url servicePath = BuiltInServerManager.getInstance().addAuthToken(Urls.parseEncoded("http://localhost:" + BuiltInServerManager.getInstance().getPort() + PreviewStaticServer.PREFIX));
     private final String templateHtmlFile = "template/default.html";
     private final boolean isPresentableUrl;
 
@@ -137,7 +140,8 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
                 inputStream = PreviewStaticServer.class.getResourceAsStream("/" + templateHtmlFile);
             }
             String template = new String(FileUtilRt.loadBytes(inputStream));
-            return template.replace("{{service}}", servicePath)
+            return template.replace("{{service}}", servicePath.getScheme() + URLUtil.SCHEME_SEPARATOR + servicePath.getAuthority() + servicePath.getPath())
+                    .replace("{{serverToken}}", StringUtils.isNotBlank(servicePath.getParameters()) ? servicePath.getParameters().substring(1) : "")
                     .replace("{{filePath}}", UrlEscapers.urlFragmentEscaper().escape(myFile.getPath()))
                     .replace("{{Lang}}", PropertiesUtils.getInfo("Lang"))
                     .replace("{{darcula}}", UIUtil.isUnderDarcula() + "")

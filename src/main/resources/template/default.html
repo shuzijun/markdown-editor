@@ -1,9 +1,9 @@
 <html>
 <head>
-    <link rel="stylesheet" href="{{service}}resources/vditor/dist/index.css"/>
-    <link rel="stylesheet" href="{{service}}resources/vditor/style.css"/>
-    <script src="{{service}}resources/vditor/dist/index.min.js"></script>
-    <script src="{{service}}resources/vditor/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="{{service}}resources/vditor/dist/index.css?{{serverToken}}"/>
+    <link rel="stylesheet" href="{{service}}resources/vditor/style.css?{{serverToken}}"/>
+    <script src="{{service}}resources/vditor/dist/index.min.js?{{serverToken}}"></script>
+    <script src="{{service}}resources/vditor/jquery-3.6.0.min.js?{{serverToken}}"></script>
 </head>
 <body class="body">
 <div id="vditor" class="vditor vditor--fullscreen"></div>
@@ -37,8 +37,8 @@
 <script>
     $.ajaxSettings.async = false;
     const userTemplate = "{{userTemplate}}" == "true";
-    const fileUrl = "{{service}}markdownFile?file={{filePath}}&projectUrl={{projectUrl}}&projectName={{projectName}}";
-    const uploadUrl = "{{service}}uploadFile?file={{filePath}}&projectUrl={{projectUrl}}&projectName={{projectName}}";
+    const fileUrl = "{{service}}markdownFile?file={{filePath}}&projectUrl={{projectUrl}}&projectName={{projectName}}&{{serverToken}}";
+    const uploadUrl = "{{service}}uploadFile?file={{filePath}}&projectUrl={{projectUrl}}&projectName={{projectName}}&{{serverToken}}";
     const vditorCDN = "{{service}}resources/vditor";
     const vditorThemeCDN = userTemplate ? "{{service}}assets/vditor/content-theme" : "{{service}}resources/vditor/dist/css/content-theme";
     let initError = true;

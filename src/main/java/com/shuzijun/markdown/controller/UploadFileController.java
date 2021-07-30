@@ -1,5 +1,6 @@
 package com.shuzijun.markdown.controller;
 
+import com.google.common.net.UrlEscapers;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -68,7 +69,7 @@ public class UploadFileController extends BaseController {
                         file = new File(assetsPath + newFileName);
                     }
                     fileUpload.renameTo(file);
-                    uploadResponseData.addSuccMap(fileName, "./assets/" + newFileName);
+                    uploadResponseData.addSuccMap(fileName, "./assets/" + UrlEscapers.urlFragmentEscaper().escape(newFileName));
                 } else {
                     uploadResponseData.addErrFiles(fileName);
                 }
