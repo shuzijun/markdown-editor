@@ -48,7 +48,7 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
             @Override
             public boolean onBeforeBrowse(CefBrowser browser, CefFrame frame, CefRequest request, boolean user_gesture, boolean is_redirect) {
                 String requestUrl =request.getURL();
-                if (url.equals(requestUrl)) {
+                if (requestUrl.startsWith(url)) {
                     return false;
                 } else {
                     openUrl(URLDecoder.decode(requestUrl, StandardCharsets.UTF_8));
@@ -59,8 +59,9 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
         getJBCefClient().addLifeSpanHandler(lifeSpanHandler = new CefLifeSpanHandlerAdapter() {
             @Override
             public boolean onBeforePopup(CefBrowser browser, CefFrame frame, String target_url, String target_frame_name) {
-                target_url = URLDecoder.decode(target_url, StandardCharsets.UTF_8);
-                openUrl(target_url);
+                if (!target_url.startsWith(url)) {
+                    openUrl(URLDecoder.decode(target_url, StandardCharsets.UTF_8));
+                }
                 return true;
             }
         }, getCefBrowser());

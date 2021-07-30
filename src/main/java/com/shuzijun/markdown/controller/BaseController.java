@@ -22,12 +22,16 @@ public abstract class BaseController {
 
     public final void process(@NotNull QueryStringDecoder urlDecoder, @NotNull FullHttpRequest request, @NotNull ChannelHandlerContext context) throws IOException {
         FullHttpResponse response;
-        if (request.method() == HttpMethod.POST) {
-            response = post(urlDecoder, request, context);
-        } else if (request.method() == HttpMethod.GET) {
-            response = get(urlDecoder, request, context);
-        } else {
-            response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND);
+        try {
+            if (request.method() == HttpMethod.POST) {
+                response = post(urlDecoder, request, context);
+            } else if (request.method() == HttpMethod.GET) {
+                response = get(urlDecoder, request, context);
+            } else {
+                response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND);
+            }
+        }catch (Throwable t){
+            response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR,Unpooled.wrappedBuffer(t.getMessage().getBytes(StandardCharsets.UTF_8)));
         }
         Responses.send(response, context.channel(), request);
         if (response.content() != Unpooled.EMPTY_BUFFER) {
@@ -39,11 +43,11 @@ public abstract class BaseController {
     }
 
     public FullHttpResponse get(@NotNull QueryStringDecoder urlDecoder, @NotNull FullHttpRequest request, @NotNull ChannelHandlerContext context) throws IOException {
-        return new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, Unpooled.wrappedBuffer("Default response".getBytes(StandardCharsets.UTF_8)));
+        return new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND);
     }
 
     public FullHttpResponse post(@NotNull QueryStringDecoder urlDecoder, @NotNull FullHttpRequest request, @NotNull ChannelHandlerContext context) throws IOException {
-        return new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, Unpooled.wrappedBuffer("Default response".getBytes(StandardCharsets.UTF_8)));
+        return new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND);
     }
 
     public abstract String getControllerPath();

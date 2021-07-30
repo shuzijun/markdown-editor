@@ -1,11 +1,11 @@
 package com.shuzijun.markdown.controller;
 
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.WriteThread;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.shuzijun.markdown.model.MarkdownResponse;
 import io.netty.channel.ChannelHandlerContext;
@@ -19,8 +19,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 /**
  * @author shuzijun
@@ -66,11 +66,18 @@ public class MarkdownFileController extends BaseController {
         InterfaceHttpData valueData = decoder.getBodyHttpData("value");
         if (valueData != null && valueData.getHttpDataType() == InterfaceHttpData.HttpDataType.Attribute) {
             String value = ((Attribute) valueData).getValue();
-            Future<FullHttpResponse> httpResponseFuture = WriteThread.submit(() -> ApplicationManager.getApplication().runWriteAction((Computable<FullHttpResponse>) () -> {
-                document.setText(value);
-                FileDocumentManager.getInstance().saveDocument(document);
-                return fillJsonResponse(MarkdownResponse.success("").toString());
-            }));
+            CompletableFuture<FullHttpResponse> httpResponseFuture = new CompletableFuture<>();
+            ApplicationManager.getApplication().invokeLaterOnWriteThread(() -> {
+                try {
+                    httpResponseFuture.complete(ApplicationManager.getApplication().runWriteAction(((ThrowableComputable<FullHttpResponse, Throwable>) () -> {
+                        document.setText(value);
+                        FileDocumentManager.getInstance().saveDocument(document);
+                        return fillJsonResponse(MarkdownResponse.success("").toString());
+                    })));
+                } catch (Throwable t) {
+                    httpResponseFuture.completeExceptionally(t);
+                }
+            });
             try {
                 return httpResponseFuture.get();
             } catch (InterruptedException | ExecutionException e) {
