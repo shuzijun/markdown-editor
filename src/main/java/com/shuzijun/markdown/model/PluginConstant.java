@@ -16,4 +16,7 @@ public class PluginConstant {
 
     public static final String TEMPLATE_VERSION = "1";
     public static final String TEMPLATE_PATH = PathManager.getPluginsPath() + File.separator + "markdown-editor" + File.separator + "assets" + File.separator;
+
+    public static final  String JS_DELIVR_ENDPOINTS = "https://data.jsdelivr.com/v1/package/gh/shuzijun/markdown-editor";
+    public static final String CDN = "https://cdn.jsdelivr.net/gh/shuzijun/markdown-editor@";
 }

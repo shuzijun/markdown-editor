@@ -68,16 +68,15 @@ public class SettingUI {
 
     }
 
-    private static final  String jsDelivrEndpoints = "https://data.jsdelivr.com/v1/package/gh/shuzijun/markdown-editor";
-    private static final String cdn = "https://cdn.jsdelivr.net/gh/shuzijun/markdown-editor@";
+
 
     private static void sync(String filePath) throws IOException {
-        String versionStr = HttpRequests.request(jsDelivrEndpoints).readString();
+        String versionStr = HttpRequests.request(PluginConstant.JS_DELIVR_ENDPOINTS).readString();
         String version = JSONObject.parseObject(versionStr).getJSONArray("versions").toJavaList(String.class)
                 .stream().filter(v -> v.startsWith("template@" + PluginConstant.TEMPLATE_VERSION))
                 .sorted(Comparator.comparing(String::toString).reversed())
                 .collect(Collectors.toList()).get(0);
-        String filesStr = HttpRequests.request(jsDelivrEndpoints + "@" + version).readString();
+        String filesStr = HttpRequests.request(PluginConstant.JS_DELIVR_ENDPOINTS + "@" + version).readString();
         saveFile(JSONObject.parseObject(filesStr).getJSONArray("files"), version, "", filePath);
     }
 
@@ -88,7 +87,7 @@ public class SettingUI {
             if (fileObject.getString("type").equals("directory")) {
                 saveFile(fileObject.getJSONArray("files"), version, path + name + "/", filePath);
             } else {
-                String value = HttpRequests.request(cdn + version + "/" + path + name).readString();
+                String value = HttpRequests.request(PluginConstant.CDN + version + "/" + path + name).readString();
                 FileUtils.saveFile(new File(filePath + path + name), value);
             }
         }

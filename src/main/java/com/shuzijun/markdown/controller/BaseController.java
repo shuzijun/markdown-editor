@@ -1,5 +1,7 @@
 package com.shuzijun.markdown.controller;
 
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
@@ -30,8 +32,8 @@ public abstract class BaseController {
             } else {
                 response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND);
             }
-        }catch (Throwable t){
-            response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR,Unpooled.wrappedBuffer(t.getMessage().getBytes(StandardCharsets.UTF_8)));
+        } catch (Throwable t) {
+            response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR, Unpooled.wrappedBuffer(t.getMessage().getBytes(StandardCharsets.UTF_8)));
         }
         Responses.send(response, context.channel(), request);
         if (response.content() != Unpooled.EMPTY_BUFFER) {
@@ -82,6 +84,19 @@ public abstract class BaseController {
 
     public void addRoute(Map<String, BaseController> route) {
         route.put(PreviewStaticServer.PREFIX + getControllerPath(), this);
+    }
+
+    protected Project getProject(String projectNameParameter, String projectUrlParameter) {
+        Project project = null;
+        for (Project p : ProjectManager.getInstance().getOpenProjects()) {
+            if ((projectNameParameter != null && projectNameParameter.equals(p.getName()))
+                    || (projectUrlParameter != null && projectUrlParameter.equals(p.getPresentableUrl()))) {
+                project = p;
+                break;
+            }
+        }
+
+        return project;
     }
 
 

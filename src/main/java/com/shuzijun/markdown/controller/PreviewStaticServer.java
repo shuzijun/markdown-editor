@@ -28,6 +28,7 @@ public class PreviewStaticServer extends HttpRequestHandler {
         new MarkdownFileController().addRoute(route);
         new ResourcesController().addRoute(route);
         new UploadFileController().addRoute(route);
+        new ExportFileController().addRoute(route);
     }
 
     public static PreviewStaticServer getInstance() {
