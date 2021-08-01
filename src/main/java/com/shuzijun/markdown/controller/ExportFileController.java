@@ -12,6 +12,7 @@ import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.jcef.JCEFHtmlPanel;
 import com.intellij.util.io.URLUtil;
+import com.shuzijun.markdown.editor.MarkdownHtmlPanel;
 import com.shuzijun.markdown.model.MarkdownResponse;
 import com.shuzijun.markdown.model.PluginConstant;
 import com.shuzijun.markdown.util.FileUtils;
@@ -128,7 +129,7 @@ public class ExportFileController extends BaseController {
             this.fileName = fileName;
             jpanel = new JBPanel();
             jpanel.setLayout(new BorderLayout());
-            loginJCEFPanel = new JCEFHtmlPanel(null);
+            loginJCEFPanel = new MarkdownHtmlPanel(sourceUrl,project);
             loginJCEFPanel.getComponent().setMinimumSize(new Dimension(1000, 500));
             loginJCEFPanel.getComponent().setPreferredSize(new Dimension(1000, 500));
             loginJCEFPanel.loadHTML(html, sourceUrl);
