@@ -62,6 +62,9 @@ public class MarkdownFileController extends BaseController {
             return fillJsonResponse(MarkdownResponse.error("unable to to find file " + fileParameter).toString());
         }
         Document document = ApplicationManager.getApplication().runReadAction((Computable<Document>) () -> FileDocumentManager.getInstance().getDocument(virtualFile));
+        if (!document.isWritable()){
+            return fillJsonResponse(MarkdownResponse.error("Document cannot be modified").toString());
+        }
         HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(request);
         InterfaceHttpData valueData = decoder.getBodyHttpData("value");
         if (valueData != null && valueData.getHttpDataType() == InterfaceHttpData.HttpDataType.Attribute) {
