@@ -14,15 +14,15 @@
 
 接下来就可以需要一些使用chrome的开发者工具和css的知识了，在编辑器右键会出现*open DevTools* ，打开后通过选择元素，查看样式，看到目前加载样式类型，然后根据自己的需求进行修改。
 
-下面介绍一下文件加下的结构。
+下面介绍一下同步的文件夹下的结构。
 
 ## template/default.html
 
 这是渲染编辑器的主要页面，所有的配置项都在这个文件里，相关配置都可以在[vditor](https://github.com/Vanessa219/vditor)查到，如果有更高的自定义需求，可以查阅配置进行修改。
 
-与主题相关的应该配置为 *"theme": darcula ? "dark" : "light"*,*"current": darcula ? "idea-dark" : "idea-light"*
+与主题相关的应该配置为 *"theme": darcula ? "dark" : "light"和*"current": darcula ? "idea-dark" : "idea-light"*
 
-其中darcula变量未当前idea是否是使用的darcula主题,idea-dark与idea-light主题为默认加载的主题。
+其中darcula变量为当前idea是否使用的darcula主题,idea-dark与idea-light主题为默认加载的主题。
 
 ## vditor/content-theme
 
