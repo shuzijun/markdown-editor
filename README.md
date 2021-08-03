@@ -4,6 +4,8 @@ IntelliJ Platform A full-featured WYSIWYG editor for markdown
 
 - [English Document](#Features)
 - [中文文档](https://github.com/shuzijun/markdown-editor/blob/main/README_ZH.md)
+- Useful Links
+  - [Custom Style](https://github.com/shuzijun/markdown-editor/blob/main/assets/CustomStyle.md)
 
 # Features
 

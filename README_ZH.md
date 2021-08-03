@@ -4,6 +4,8 @@ IntelliJ平台一个功能齐全的所见即所得Markdown编辑器
 
 - [English Document](https://github.com/shuzijun/markdown-editor/blob/main/README.md)
 - [中文文档](#功能)
+- 有用的链接
+  - [自定义样式](https://github.com/shuzijun/markdown-editor/blob/main/assets/CustomStyle_ZH.md)
 
 # 功能
 
