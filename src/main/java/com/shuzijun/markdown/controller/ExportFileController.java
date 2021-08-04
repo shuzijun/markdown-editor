@@ -66,54 +66,58 @@ public class ExportFileController extends BaseController {
         HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(request);
         InterfaceHttpData valueData = decoder.getBodyHttpData("value");
         InterfaceHttpData typeData = decoder.getBodyHttpData("type");
-        if (valueData != null && valueData.getHttpDataType() == InterfaceHttpData.HttpDataType.Attribute) {
-            String value = ((Attribute) valueData).getValue();
-            String type = (typeData != null && typeData.getHttpDataType() == InterfaceHttpData.HttpDataType.Attribute) ?
-                    ((Attribute) typeData).getValue() : "html";
-            String fileName = virtualFile.getParent().getPath() + File.separator + virtualFile.getName().replaceAll("\\.(md|markdown)$", "." + type);
-            File exportFile = new File(fileName);
-            if (exportFile.exists()) {
-                fileName = virtualFile.getParent().getPath() + File.separator + System.currentTimeMillis() + "-" + virtualFile.getName().replaceAll("\\.(md|markdown)$", "." + type);
-                exportFile = new File(fileName);
-            }
-            if ("html".equals(type)) {
-                InterfaceHttpData themeCdnData = decoder.getBodyHttpData("themeCdn");
-                if (themeCdnData != null && themeCdnData.getHttpDataType() == InterfaceHttpData.HttpDataType.Attribute) {
-                    value = value.replaceAll(((Attribute) themeCdnData).getValue(), PluginConstant.CDN + PluginManagerCore.getPlugin(PluginId.getId(PluginConstant.PLUGIN_ID)).getVersion() + "/src/main/resources/vditor/dist/css/content-theme");
+        InterfaceHttpData themeCdnData = decoder.getBodyHttpData("themeCdn");
+        InterfaceHttpData cdnData = decoder.getBodyHttpData("cdn");
+        try {
+            if (valueData != null && valueData.getHttpDataType() == InterfaceHttpData.HttpDataType.Attribute) {
+                String value = ((Attribute) valueData).getValue();
+                String type = (typeData != null && typeData.getHttpDataType() == InterfaceHttpData.HttpDataType.Attribute) ?
+                        ((Attribute) typeData).getValue() : "html";
+                String fileName = virtualFile.getParent().getPath() + File.separator + virtualFile.getName().replaceAll("\\.(md|markdown)$", "." + type);
+                File exportFile = new File(fileName);
+                if (exportFile.exists()) {
+                    fileName = virtualFile.getParent().getPath() + File.separator + System.currentTimeMillis() + "-" + virtualFile.getName().replaceAll("\\.(md|markdown)$", "." + type);
+                    exportFile = new File(fileName);
                 }
-                InterfaceHttpData cdnData = decoder.getBodyHttpData("cdn");
-                if (cdnData != null && cdnData.getHttpDataType() == InterfaceHttpData.HttpDataType.Attribute) {
-                    value = value.replaceAll(((Attribute) cdnData).getValue(), PluginConstant.CDN + PluginManagerCore.getPlugin(PluginId.getId(PluginConstant.PLUGIN_ID)).getVersion() + "/src/main/resources/vditor");
-                }
-                FileUtils.saveFile(exportFile, value);
-                return fillJsonResponse(MarkdownResponse.success(fileName).toString());
-            } else if ("pdf".equals(type)) {
-                AtomicReference<String> returnMessage = new AtomicReference<>();
-                Project project = getProject(projectNameParameter, projectUrlParameter);
-                String finalValue = value;
-                String finalFileName = fileName;
-                String url = UrlEscapers.urlFragmentEscaper().escape(URLUtil.FILE_PROTOCOL + URLUtil.SCHEME_SEPARATOR + FileUtils.separator() + virtualFile.getPath() + System.currentTimeMillis());
-                ApplicationManager.getApplication().invokeAndWait(() -> {
-                    PdfDialogWrapper pdfDialogWrapper = null;
-                    try {
-                        pdfDialogWrapper = new PdfDialogWrapper(project, url, finalValue, finalFileName);
-                        if (pdfDialogWrapper.showAndGet()) {
-                            returnMessage.set(pdfDialogWrapper.getMessage());
-                        } else {
-                            returnMessage.set("Export cancel");
-                        }
-                    } finally {
-                        if (pdfDialogWrapper != null) {
-                            pdfDialogWrapper.dispose();
-                        }
+                if ("html".equals(type)) {
+                    if (themeCdnData != null && themeCdnData.getHttpDataType() == InterfaceHttpData.HttpDataType.Attribute) {
+                        value = value.replaceAll(((Attribute) themeCdnData).getValue(), PluginConstant.CDN + PluginManagerCore.getPlugin(PluginId.getId(PluginConstant.PLUGIN_ID)).getVersion() + "/src/main/resources/vditor/dist/css/content-theme");
                     }
-                });
-                return fillJsonResponse(MarkdownResponse.success(returnMessage.get()).toString());
+                    if (cdnData != null && cdnData.getHttpDataType() == InterfaceHttpData.HttpDataType.Attribute) {
+                        value = value.replaceAll(((Attribute) cdnData).getValue(), PluginConstant.CDN + PluginManagerCore.getPlugin(PluginId.getId(PluginConstant.PLUGIN_ID)).getVersion() + "/src/main/resources/vditor");
+                    }
+                    FileUtils.saveFile(exportFile, value);
+                    return fillJsonResponse(MarkdownResponse.success(fileName).toString());
+                } else if ("pdf".equals(type)) {
+                    AtomicReference<String> returnMessage = new AtomicReference<>();
+                    Project project = getProject(projectNameParameter, projectUrlParameter);
+                    String finalValue = value;
+                    String finalFileName = fileName;
+                    String url = UrlEscapers.urlFragmentEscaper().escape(URLUtil.FILE_PROTOCOL + URLUtil.SCHEME_SEPARATOR + FileUtils.separator() + virtualFile.getPath() + System.currentTimeMillis());
+                    ApplicationManager.getApplication().invokeAndWait(() -> {
+                        PdfDialogWrapper pdfDialogWrapper = null;
+                        try {
+                            pdfDialogWrapper = new PdfDialogWrapper(project, url, finalValue, finalFileName);
+                            if (pdfDialogWrapper.showAndGet()) {
+                                returnMessage.set(pdfDialogWrapper.getMessage());
+                            } else {
+                                returnMessage.set("Export cancel");
+                            }
+                        } finally {
+                            if (pdfDialogWrapper != null) {
+                                pdfDialogWrapper.dispose();
+                            }
+                        }
+                    });
+                    return fillJsonResponse(MarkdownResponse.success(returnMessage.get()).toString());
+                } else {
+                    return fillJsonResponse(MarkdownResponse.error("Type " + type + " is not supported").toString());
+                }
             } else {
-                return fillJsonResponse(MarkdownResponse.error("Type " + type + " is not supported").toString());
+                return fillJsonResponse(MarkdownResponse.error("The requested content is not supported").toString());
             }
-        } else {
-            return fillJsonResponse(MarkdownResponse.error("The requested content is not supported").toString());
+        } finally {
+            decoder.destroy();
         }
     }
 
@@ -129,7 +133,7 @@ public class ExportFileController extends BaseController {
             this.fileName = fileName;
             jpanel = new JBPanel();
             jpanel.setLayout(new BorderLayout());
-            loginJCEFPanel = new MarkdownHtmlPanel(sourceUrl,project);
+            loginJCEFPanel = new MarkdownHtmlPanel(sourceUrl, project);
             loginJCEFPanel.getComponent().setMinimumSize(new Dimension(1000, 500));
             loginJCEFPanel.getComponent().setPreferredSize(new Dimension(1000, 500));
             loginJCEFPanel.loadHTML(html, sourceUrl);

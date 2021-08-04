@@ -62,33 +62,37 @@ public class MarkdownFileController extends BaseController {
             return fillJsonResponse(MarkdownResponse.error("unable to to find file " + fileParameter).toString());
         }
         Document document = ApplicationManager.getApplication().runReadAction((Computable<Document>) () -> FileDocumentManager.getInstance().getDocument(virtualFile));
-        if (!document.isWritable()){
+        if (!document.isWritable()) {
             return fillJsonResponse(MarkdownResponse.error("Document cannot be modified").toString());
         }
         HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(request);
         InterfaceHttpData valueData = decoder.getBodyHttpData("value");
-        if (valueData != null && valueData.getHttpDataType() == InterfaceHttpData.HttpDataType.Attribute) {
-            String value = ((Attribute) valueData).getValue();
-            CompletableFuture<FullHttpResponse> httpResponseFuture = new CompletableFuture<>();
-            ApplicationManager.getApplication().invokeLaterOnWriteThread(() -> {
+        try {
+            if (valueData != null && valueData.getHttpDataType() == InterfaceHttpData.HttpDataType.Attribute) {
+                String value = ((Attribute) valueData).getValue();
+                CompletableFuture<FullHttpResponse> httpResponseFuture = new CompletableFuture<>();
+                ApplicationManager.getApplication().invokeLaterOnWriteThread(() -> {
+                    try {
+                        httpResponseFuture.complete(ApplicationManager.getApplication().runWriteAction(((ThrowableComputable<FullHttpResponse, Throwable>) () -> {
+                            document.setText(value);
+                            FileDocumentManager.getInstance().saveDocument(document);
+                            return fillJsonResponse(MarkdownResponse.success("").toString());
+                        })));
+                    } catch (Throwable t) {
+                        httpResponseFuture.completeExceptionally(t);
+                    }
+                });
                 try {
-                    httpResponseFuture.complete(ApplicationManager.getApplication().runWriteAction(((ThrowableComputable<FullHttpResponse, Throwable>) () -> {
-                        document.setText(value);
-                        FileDocumentManager.getInstance().saveDocument(document);
-                        return fillJsonResponse(MarkdownResponse.success("").toString());
-                    })));
-                } catch (Throwable t) {
-                    httpResponseFuture.completeExceptionally(t);
+                    return httpResponseFuture.get();
+                } catch (InterruptedException | ExecutionException e) {
+                    LOG.error(e);
+                    return fillJsonResponse(MarkdownResponse.error(e.getMessage()).toString());
                 }
-            });
-            try {
-                return httpResponseFuture.get();
-            } catch (InterruptedException | ExecutionException e) {
-                LOG.error(e);
-                return fillJsonResponse(MarkdownResponse.error(e.getMessage()).toString());
+            } else {
+                return fillJsonResponse(MarkdownResponse.error("The requested content is not supported").toString());
             }
-        } else {
-            return fillJsonResponse(MarkdownResponse.error("The requested content is not supported").toString());
+        } finally {
+            decoder.destroy();
         }
     }
 }

@@ -36,12 +36,6 @@ public abstract class BaseController {
             response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR, Unpooled.wrappedBuffer(t.getMessage().getBytes(StandardCharsets.UTF_8)));
         }
         Responses.send(response, context.channel(), request);
-        if (response.content() != Unpooled.EMPTY_BUFFER) {
-            try {
-                response.release();
-            } catch (Exception ignore) {
-            }
-        }
     }
 
     public FullHttpResponse get(@NotNull QueryStringDecoder urlDecoder, @NotNull FullHttpRequest request, @NotNull ChannelHandlerContext context) throws IOException {

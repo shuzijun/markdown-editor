@@ -56,25 +56,29 @@ public class UploadFileController extends BaseController {
 
         HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(request);
         List<InterfaceHttpData> datas = decoder.getBodyHttpDatas();
-        UploadResponse.Data uploadResponseData = new UploadResponse.Data();
-        for (InterfaceHttpData data : datas) {
-            if (data.getHttpDataType() == InterfaceHttpData.HttpDataType.FileUpload) {
-                FileUpload fileUpload = (FileUpload) data;
-                String fileName = fileUpload.getFilename();
-                if (fileUpload.isCompleted()) {
-                    String newFileName = fileName;
-                    File file = new File(assetsPath + newFileName);
-                    if (file.exists()) {
-                        newFileName = System.currentTimeMillis() + "-" + newFileName;
-                        file = new File(assetsPath + newFileName);
+        try {
+            UploadResponse.Data uploadResponseData = new UploadResponse.Data();
+            for (InterfaceHttpData data : datas) {
+                if (data.getHttpDataType() == InterfaceHttpData.HttpDataType.FileUpload) {
+                    FileUpload fileUpload = (FileUpload) data;
+                    String fileName = fileUpload.getFilename();
+                    if (fileUpload.isCompleted()) {
+                        String newFileName = fileName;
+                        File file = new File(assetsPath + newFileName);
+                        if (file.exists()) {
+                            newFileName = System.currentTimeMillis() + "-" + newFileName;
+                            file = new File(assetsPath + newFileName);
+                        }
+                        fileUpload.renameTo(file);
+                        uploadResponseData.addSuccMap(fileName, "./assets/" + UrlEscapers.urlFragmentEscaper().escape(newFileName));
+                    } else {
+                        uploadResponseData.addErrFiles(fileName);
                     }
-                    fileUpload.renameTo(file);
-                    uploadResponseData.addSuccMap(fileName, "./assets/" + UrlEscapers.urlFragmentEscaper().escape(newFileName));
-                } else {
-                    uploadResponseData.addErrFiles(fileName);
                 }
             }
+            return fillJsonResponse(UploadResponse.success(uploadResponseData).toString());
+        } finally {
+            decoder.destroy();
         }
-        return fillJsonResponse(UploadResponse.success(uploadResponseData).toString());
     }
 }
