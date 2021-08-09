@@ -2,6 +2,9 @@ package com.shuzijun.markdown.controller;
 
 import com.google.common.net.UrlEscapers;
 import com.intellij.ide.plugins.PluginManagerCore;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.Notifications;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
@@ -36,7 +39,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author shuzijun
@@ -79,6 +81,7 @@ public class ExportFileController extends BaseController {
                     fileName = virtualFile.getParent().getPath() + File.separator + System.currentTimeMillis() + "-" + virtualFile.getName().replaceAll("\\.(md|markdown)$", "." + type);
                     exportFile = new File(fileName);
                 }
+                Project project = getProject(projectNameParameter, projectUrlParameter);
                 if ("html".equals(type)) {
                     if (themeCdnData != null && themeCdnData.getHttpDataType() == InterfaceHttpData.HttpDataType.Attribute) {
                         value = value.replaceAll(((Attribute) themeCdnData).getValue(), PluginConstant.CDN + PluginManagerCore.getPlugin(PluginId.getId(PluginConstant.PLUGIN_ID)).getVersion() + "/src/main/resources/vditor/dist/css/content-theme");
@@ -87,21 +90,18 @@ public class ExportFileController extends BaseController {
                         value = value.replaceAll(((Attribute) cdnData).getValue(), PluginConstant.CDN + PluginManagerCore.getPlugin(PluginId.getId(PluginConstant.PLUGIN_ID)).getVersion() + "/src/main/resources/vditor");
                     }
                     FileUtils.saveFile(exportFile, value);
-                    return fillJsonResponse(MarkdownResponse.success(fileName).toString());
+                    Notifications.Bus.notify(new Notification(PluginConstant.NOTIFICATION_GROUP, "Export PDF", "Export success:" + fileName, NotificationType.INFORMATION), project);
+                    return fillJsonResponse(MarkdownResponse.success("").toString());
                 } else if ("pdf".equals(type)) {
-                    AtomicReference<String> returnMessage = new AtomicReference<>();
-                    Project project = getProject(projectNameParameter, projectUrlParameter);
                     String finalValue = value;
                     String finalFileName = fileName;
                     String url = UrlEscapers.urlFragmentEscaper().escape(URLUtil.FILE_PROTOCOL + URLUtil.SCHEME_SEPARATOR + FileUtils.separator() + virtualFile.getPath() + System.currentTimeMillis());
-                    ApplicationManager.getApplication().invokeAndWait(() -> {
+                    ApplicationManager.getApplication().invokeLater(() -> {
                         PdfDialogWrapper pdfDialogWrapper = null;
                         try {
                             pdfDialogWrapper = new PdfDialogWrapper(project, url, finalValue, finalFileName);
                             if (pdfDialogWrapper.showAndGet()) {
-                                returnMessage.set(pdfDialogWrapper.getMessage());
-                            } else {
-                                returnMessage.set("Export cancel");
+                                Notifications.Bus.notify(new Notification(PluginConstant.NOTIFICATION_GROUP, "Export PDF", pdfDialogWrapper.getMessage(), NotificationType.INFORMATION), project);
                             }
                         } finally {
                             if (pdfDialogWrapper != null) {
@@ -109,7 +109,7 @@ public class ExportFileController extends BaseController {
                             }
                         }
                     });
-                    return fillJsonResponse(MarkdownResponse.success(returnMessage.get()).toString());
+                    return fillJsonResponse(MarkdownResponse.success("").toString());
                 } else {
                     return fillJsonResponse(MarkdownResponse.error("Type " + type + " is not supported").toString());
                 }
