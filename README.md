@@ -15,6 +15,12 @@ IntelliJ Platform A full-featured WYSIWYG editor for markdown
 * Support using IDE to open files quickly
 * More function reference [vditor features](https://github.com/Vanessa219/vditor/blob/master/README_en_US.md#--features)
 
+# Introduction
+
+* After installing the plugin, open the .md file,select **Markdown Editor** at the bottom of the editor.
+* There is no need to uninstall the default markdown plugin. The editor of the current plugin appears after the default editor.
+* Ensure that the IDE supports JCEF.
+
 # Demo
 
 ![demo.gif](https://raw.githubusercontent.com/shuzijun/markdown-editor/main/assets/demo.gif)
