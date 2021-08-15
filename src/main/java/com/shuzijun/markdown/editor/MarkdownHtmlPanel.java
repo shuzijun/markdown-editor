@@ -17,6 +17,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.jcef.JCEFHtmlPanel;
 import com.intellij.util.io.HttpRequests;
 import com.intellij.util.io.URLUtil;
+import com.intellij.util.ui.UIUtil;
 import com.shuzijun.markdown.model.PluginConstant;
 import com.shuzijun.markdown.util.FileUtils;
 import io.netty.handler.codec.http.HttpHeaderNames;
@@ -150,5 +151,10 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
         } else {
             BrowserUtil.browse(url);
         }
+    }
+
+    public void updateStyle(String style) {
+        getCefBrowser().executeJavaScript(
+                "updateStyle('" + style + "'," + UIUtil.isUnderDarcula() + ");", getCefBrowser().getURL(), 0);
     }
 }

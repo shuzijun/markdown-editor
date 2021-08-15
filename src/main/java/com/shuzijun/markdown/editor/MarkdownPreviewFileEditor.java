@@ -3,6 +3,12 @@ package com.shuzijun.markdown.editor;
 import com.google.common.net.UrlEscapers;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.colors.EditorColors;
+import com.intellij.openapi.editor.colors.EditorColorsListener;
+import com.intellij.openapi.editor.colors.EditorColorsManager;
+import com.intellij.openapi.editor.colors.EditorColorsScheme;
+import com.intellij.openapi.editor.colors.impl.EditorColorsSchemeImpl;
+import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
@@ -12,11 +18,12 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.jcef.JCEFHtmlPanel;
 import com.intellij.util.Url;
 import com.intellij.util.Urls;
 import com.intellij.util.io.URLUtil;
+import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.UIUtil;
 import com.shuzijun.markdown.controller.FileApplicationService;
 import com.shuzijun.markdown.controller.PreviewStaticServer;
@@ -36,6 +43,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.DecimalFormat;
 
 /**
  * @author shuzijun
@@ -47,7 +55,7 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
     private final Document myDocument;
 
     private final JPanel myHtmlPanelWrapper;
-    private final JCEFHtmlPanel myPanel;
+    private final MarkdownHtmlPanel myPanel;
 
     private final Url servicePath = BuiltInServerManager.getInstance().addAuthToken(Urls.parseEncoded("http://localhost:" + BuiltInServerManager.getInstance().getPort() + PreviewStaticServer.PREFIX));
     private final String templateHtmlFile = "template/default.html";
@@ -60,7 +68,7 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
         myHtmlPanelWrapper = new JPanel(new BorderLayout());
         isPresentableUrl = project.getPresentableUrl() != null;
         String url = UrlEscapers.urlFragmentEscaper().escape(URLUtil.FILE_PROTOCOL + URLUtil.SCHEME_SEPARATOR + FileUtils.separator() + myFile.getPath());
-        JCEFHtmlPanel tempPanel = null;
+        MarkdownHtmlPanel tempPanel = null;
         try {
             tempPanel = new MarkdownHtmlPanel(url, project);
             tempPanel.loadHTML(createHtml(isPresentableUrl), url);
@@ -72,6 +80,15 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
         myHtmlPanelWrapper.repaint();
         FileApplicationService fileApplicationService = ApplicationManager.getApplication().getService(FileApplicationService.class);
         fileApplicationService.putVirtualFile(myFile.getPath(), isPresentableUrl ? project.getPresentableUrl() : project.getName(), myFile);
+
+        MessageBusConnection settingsConnection = ApplicationManager.getApplication().getMessageBus().connect(this);
+        settingsConnection.subscribe(EditorColorsManager.TOPIC, new EditorColorsListener() {
+            @Override
+            public void globalSchemeChange(@Nullable EditorColorsScheme scheme) {
+                myPanel.updateStyle(getStyle(false));
+            }
+        });
+
     }
 
 
@@ -148,6 +165,7 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
                     .replace("{{userTemplate}}", templateFile.exists() + "")
                     .replace("{{projectUrl}}", isPresentableUrl ? myProject.getPresentableUrl() : "")
                     .replace("{{projectName}}", isPresentableUrl ? "" : myProject.getName())
+                    .replace("{{ideStyle}}", getStyle(true))
                     ;
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -164,6 +182,49 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
     @Override
     public @Nullable VirtualFile getFile() {
         return myFile;
+    }
+
+    private String getStyle(boolean isTag) {
+        try {
+            EditorColorsSchemeImpl editorColorsScheme = (EditorColorsSchemeImpl) EditorColorsManager.getInstance().getGlobalScheme();
+            Color defaultBackground = editorColorsScheme.getDefaultBackground();
+
+            Color scrollbarThumbColor = EditorColors.SCROLLBAR_THUMB_COLOR.getDefaultColor();
+            if (editorColorsScheme.getColor(EditorColors.SCROLLBAR_THUMB_COLOR) != null) {
+                scrollbarThumbColor = editorColorsScheme.getColor(EditorColors.SCROLLBAR_THUMB_COLOR);
+            }
+            TextAttributes textAttributes = editorColorsScheme.getDirectlyDefinedAttributes().get("TEXT");
+            Color text = null;
+            if (textAttributes != null) {
+                text = textAttributes.getForegroundColor();
+            }
+            String fontFamily = "font-family:\""+editorColorsScheme.getEditorFontName()+"\",\"Helvetica Neue\",\"Luxi Sans\",\"DejaVu Sans\"," +
+                    "\"Hiragino Sans GB\",\"Microsoft Yahei\",sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Noto Color Emoji\",\"Segoe UI Symbol\"," +
+                    "\"Android Emoji\",\"EmojiSymbols\";";
+            StringBuilder sb = new StringBuilder(isTag ? "<style id=\"ideaStyle\">" : "");
+            sb.append(UIUtil.isUnderDarcula() ? ".vditor--dark" : ".vditor").append("{--panel-background-color:").append(toHexColor(defaultBackground))
+                    .append(";--textarea-background-color:").append(toHexColor(defaultBackground)).append(";");
+            sb.append("--toolbar-background-color:").append(toHexColor(JBColor.background())).append(";");
+            sb.append("}");
+            sb.append("::-webkit-scrollbar-track {background-color:").append(toHexColor(defaultBackground)).append(";}");
+            sb.append("::-webkit-scrollbar-thumb {background-color:").append(toHexColor(scrollbarThumbColor)).append(";}");
+            sb.append(".vditor-reset {font-size:").append(editorColorsScheme.getEditorFontSize()).append(";");
+            sb.append(fontFamily);
+            if (text != null) {
+                sb.append("color:").append(toHexColor(text)).append(";");
+            }
+            sb.append("}");
+            sb.append(isTag ? "</style>" : "");
+            return sb.toString();
+        } catch (Exception e) {
+            return "";
+        }
+
+    }
+
+    private String toHexColor(Color color) {
+        DecimalFormat df = new DecimalFormat("0.00");
+        return String.format("rgba(%s,%s,%s,%s)", color.getRed(), color.getGreen(), color.getBlue(), df.format(color.getAlpha() / (float) 255));
     }
 
 }
