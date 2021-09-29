@@ -1,0 +1,43 @@
+# Synchronize changes to the main branch to template
+
+name: sync template
+
+# Controls when the workflow will run
+on:
+  workflow_dispatch:
+    tag:
+      description: 'tag name'
+      required: true
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+        with:
+          ref: main
+          path: main
+
+      - uses: actions/checkout@v2
+        with:
+          ref: template@1
+          path: template
+
+      - run: cp -rf  main/src/main/resources/template/ template/template/
+      - run: cp -rf  main/src/main/resources/vditor/dist/css/content-theme/idea-dark.css template/vditor/content-theme/
+      - run: cp -rf  main/src/main/resources/vditor/dist/css/content-theme/idea-light.css template/vditor/content-theme/
+
+      - uses: EndBug/add-and-commit@v7
+        with:
+          branch: template@1
+          message: 'Synchronize main'
+          cwd: './template'
+          author_name: shuzijun
+          author_email: shuzijun0109@gmail.com
+          tag: '${{ github.event.inputs.tag }} --force'
