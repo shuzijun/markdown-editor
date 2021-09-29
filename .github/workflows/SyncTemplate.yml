@@ -5,9 +5,10 @@ name: sync template
 # Controls when the workflow will run
 on:
   workflow_dispatch:
-    tag:
-      description: 'tag name'
-      required: true
+    inputs:
+      tag:
+        description: 'tag name'
+        required: true
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
