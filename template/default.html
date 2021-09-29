@@ -73,6 +73,21 @@
         }
         appendSyncedTip(!initError);
         vditor.vditor.toolbar.elements.export.querySelectorAll(".vditor-hint")[0].innerHTML="<button onclick='exportFile(\"pdf\")'>PDF</button>\n<button onclick='exportFile(\"html\")'>HTML</button>"
+        /*const contentMenuStyle = document.getElementById("contentMenu").style;
+        const notepad = document.getElementsByClassName("vditor-content")[0];
+        notepad.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            contentMenuStyle.top =  e.clientY+ "px";
+            contentMenuStyle.left = e.clientX + "px";
+            contentMenuStyle.display = "block"
+            contentMenuStyle.opacity = "1";
+        }, false);
+        notepad.addEventListener('click', function(e) {
+            contentMenuStyle.opacity = "0";
+            setTimeout(function() {
+                contentMenuStyle.display = "none";
+            }, 501);
+        }, false);*/
     }
 
     function editBlur(md) {
@@ -194,8 +209,6 @@
             }, function (data) {
                 if (data.success == false) {
                     vditor.tip("Failed to Export file", 0);
-                } else {
-                    vditor.tip(data.data, 2000);
                 }
             }).fail(function () {
                 vditor.tip("Save file request error", 0);
@@ -296,6 +309,14 @@
             editInput(md)
         }
     });
-
+    function updateStyle(style,darcula){
+        let newStyle = document.createElement('style');
+        newStyle.id = 'ideaStyle';
+        newStyle.innerHTML = style;
+        let oldStyle = document.getElementById('ideaStyle');
+        oldStyle.parentNode.replaceChild(newStyle,oldStyle);
+        vditor.setTheme(darcula? "dark" : "light",darcula ? "idea-dark" : "idea-light",darcula ? "dracula" : "github",vditorThemeCDN)
+    }
 </script>
+{{ideStyle}}
 </html>
