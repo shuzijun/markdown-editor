@@ -30,7 +30,7 @@ jobs:
           ref: template@1
           path: template
 
-      - run: cp -rf  main/src/main/resources/template/ template/template/
+      - run: cp -rf  main/src/main/resources/template/ template/
       - run: cp -rf  main/src/main/resources/vditor/dist/css/content-theme/idea-dark.css template/vditor/content-theme/
       - run: cp -rf  main/src/main/resources/vditor/dist/css/content-theme/idea-light.css template/vditor/content-theme/
 
