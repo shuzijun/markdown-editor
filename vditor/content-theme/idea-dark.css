@@ -128,3 +128,41 @@
     --textarea-background-color: #2B2B2B;
     --toolbar-background-color: #3C3F41;
 }
+
+.contentMenu {
+    position: fixed;
+    z-index: 100;
+    opacity: 0;
+
+    padding: 0px;
+    font-family: "Helvetica Neue","Luxi Sans","DejaVu Sans","Hiragino Sans GB","Microsoft Yahei",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Segoe UI Symbol","Android Emoji","EmojiSymbols";
+    font-size: 13px;
+    background: #3C3F41;
+    color: #AFB1B3;
+    border: 1px solid #515151;
+}
+
+/*Right-click menu*/
+.contentMenu a {
+    display: block;
+    color: #AFB1B3;
+    text-decoration: none;
+    padding: 6px 8px 6px 30px;
+    width: 150px;
+    position: relative;
+}
+
+.contentMenu a span {
+    color: #BCB1B3;
+    float: right;
+}
+
+.contentMenu a:hover {
+    color: #fff;
+    background: #3879D9;
+}
+
+.contentMenu hr {
+    border: 0.5px solid #515151;
+    border-bottom: 0;
+}
