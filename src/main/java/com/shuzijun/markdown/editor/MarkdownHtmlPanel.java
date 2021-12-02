@@ -1,5 +1,6 @@
 package com.shuzijun.markdown.editor;
 
+import com.alibaba.fastjson.JSONObject;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
@@ -12,8 +13,10 @@ import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypes;
 import com.intellij.openapi.fileTypes.ex.FileTypeChooser;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.jcef.JBCefJSQuery;
 import com.intellij.ui.jcef.JCEFHtmlPanel;
 import com.intellij.util.io.HttpRequests;
 import com.intellij.util.io.URLUtil;
@@ -36,6 +39,7 @@ import java.net.HttpURLConnection;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.function.Function;
 
 /**
  * @author shuzijun
@@ -46,6 +50,7 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
 
     private final CefRequestHandler requestHandler;
     private final CefLifeSpanHandler lifeSpanHandler;
+    private final JBCefJSQuery findJSQuery;
 
     private final String url;
     private final Project project;
@@ -118,12 +123,30 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
                 return true;
             }
         }, getCefBrowser());
+        findJSQuery = JBCefJSQuery.create(this);
+        findJSQuery.addHandler(new Function<String, JBCefJSQuery.Response>() {
+            @Override
+            public JBCefJSQuery.Response apply(String find) {
+                if (StringUtils.isEmpty(find)) {
+                    getCefBrowser().stopFinding(true);
+                    return null;
+                }
+                JSONObject findObject = JSONObject.parseObject(find);
+                if (StringUtils.isEmpty(findObject.getString("searchText"))) {
+                    getCefBrowser().stopFinding(true);
+                    return null;
+                }
+                getCefBrowser().find(1, findObject.getString("searchText"), findObject.getBoolean("forward"), false, true);
+                return null;
+            }
+        });
     }
 
     @Override
     public void dispose() {
         getJBCefClient().removeRequestHandler(requestHandler, getCefBrowser());
         getJBCefClient().removeLifeSpanHandler(lifeSpanHandler, getCefBrowser());
+        Disposer.dispose(findJSQuery);
         super.dispose();
     }
 
@@ -156,5 +179,21 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
     public void updateStyle(String style) {
         getCefBrowser().executeJavaScript(
                 "updateStyle('" + style + "'," + UIUtil.isUnderDarcula() + ");", getCefBrowser().getURL(), 0);
+    }
+
+    public String getInjectScript() {
+        String script = "function find(searchText,forward){\n" +
+                "        let findJson = '{\"searchText\":\"'+searchText+'\",\"forward\":'+forward+'}';\n" +
+                "        " + findJSQuery.inject("findJson") +
+                "    }";
+        return script;
+    }
+
+    public void browserFind(String txt,boolean forward){
+        if (StringUtils.isEmpty(txt)) {
+            getCefBrowser().stopFinding(true);
+            return;
+        }
+        getCefBrowser().find(1, txt, forward, false, true);
     }
 }

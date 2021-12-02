@@ -2,7 +2,9 @@ package com.shuzijun.markdown.setting;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.util.io.HttpRequests;
 import com.shuzijun.markdown.model.PluginConstant;
@@ -25,6 +27,7 @@ public class SettingUI {
     private JPanel mainPanel;
     private JButton syncButton;
     private TextFieldWithBrowseButton templatePathField;
+    private JComboBox editorPolicyBox;
 
     public SettingUI() {
         templatePathField.setText(PluginConstant.TEMPLATE_PATH);
@@ -46,6 +49,11 @@ public class SettingUI {
                 });
             }
         });
+        for (FileEditorPolicy value : FileEditorPolicy.values()) {
+            editorPolicyBox.addItem(value.name());
+        }
+        editorPolicyBox.setSelectedItem(PropertiesComponent.getInstance().getValue(PluginConstant.editorPolicyKey,FileEditorPolicy.PLACE_AFTER_DEFAULT_EDITOR.name()));
+
     }
 
     public JPanel getContentPane() {
@@ -53,11 +61,11 @@ public class SettingUI {
     }
 
     public boolean isModified() {
-        return false;
+        return !PropertiesComponent.getInstance().getValue(PluginConstant.editorPolicyKey,FileEditorPolicy.PLACE_AFTER_DEFAULT_EDITOR.name()).equals(editorPolicyBox.getSelectedItem());
     }
 
     public void apply() {
-
+        PropertiesComponent.getInstance().setValue(PluginConstant.editorPolicyKey,editorPolicyBox.getSelectedItem().toString());
     }
 
     public void reset() {

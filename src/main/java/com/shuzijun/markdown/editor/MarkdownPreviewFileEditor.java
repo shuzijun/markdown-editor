@@ -1,6 +1,11 @@
 package com.shuzijun.markdown.editor;
 
 import com.google.common.net.UrlEscapers;
+import com.intellij.ide.structureView.StructureViewBuilder;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.colors.EditorColors;
@@ -18,8 +23,11 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBPanel;
+import com.intellij.ui.components.JBTextField;
 import com.intellij.util.Url;
 import com.intellij.util.Urls;
 import com.intellij.util.io.URLUtil;
@@ -37,7 +45,12 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.BuiltInServerManager;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileInputStream;
@@ -57,6 +70,9 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
     private final JPanel myHtmlPanelWrapper;
     private final MarkdownHtmlPanel myPanel;
 
+    private final JBPanel toolbarPanel = new JBPanel(new FlowLayout(FlowLayout.LEFT));
+    private final JBTextField searchField = new JBTextField();
+
     private final Url servicePath = BuiltInServerManager.getInstance().addAuthToken(Urls.parseEncoded("http://localhost:" + BuiltInServerManager.getInstance().getPort() + PreviewStaticServer.PREFIX));
     private final String templateHtmlFile = "template/default.html";
     private final boolean isPresentableUrl;
@@ -71,8 +87,54 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
         MarkdownHtmlPanel tempPanel = null;
         try {
             tempPanel = new MarkdownHtmlPanel(url, project);
-            tempPanel.loadHTML(createHtml(isPresentableUrl), url);
+            tempPanel.loadHTML(createHtml(isPresentableUrl,tempPanel), url);
             myHtmlPanelWrapper.add(tempPanel.getComponent(), BorderLayout.CENTER);
+            
+            MarkdownHtmlPanel finalTempPanel = tempPanel;
+            searchField.setPreferredSize(new Dimension(200,25));
+            searchField.addKeyListener(new KeyAdapter() {
+                @Override
+                public void keyPressed(KeyEvent e) {
+                    if(e.getKeyCode() == KeyEvent.VK_ENTER){
+                        finalTempPanel.browserFind(searchField.getText(),true);
+                    }
+                }
+            });
+            searchField.getDocument().addDocumentListener(new DocumentAdapter() {
+                @Override
+                protected void textChanged(@NotNull DocumentEvent e) {
+                    finalTempPanel.browserFind(searchField.getText(),true);
+                }
+            });
+            JBLabel previousLabel = new JBLabel("<",JLabel.CENTER);
+            previousLabel.setPreferredSize(new Dimension(25,25));
+            previousLabel.addMouseListener(new LabelMouseListener(previousLabel,false));
+            JBLabel nextLabel = new JBLabel(">",JLabel.CENTER);
+            nextLabel.setPreferredSize(new Dimension(25,25));
+            nextLabel.addMouseListener(new LabelMouseListener(nextLabel,true));
+            JBLabel close = new JBLabel("x",JLabel.CENTER);
+            close.setPreferredSize(new Dimension(25,25));
+            close.addMouseListener(new LabelMouseListener(close,false){
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    searchField.setText("");
+                    toolbarPanel.setVisible(false);
+                }
+            });
+            toolbarPanel.add( new JBLabel("find:",JLabel.CENTER));
+            toolbarPanel.add(searchField);
+            toolbarPanel.add(previousLabel);
+            toolbarPanel.add(nextLabel);
+            toolbarPanel.add(close);
+            AnAction searchAction = ActionManager.getInstance().getAction("markdown.search");
+            AnAction searchVisibleAction = ActionManager.getInstance().getAction("markdown.searchVisible");
+            ActionToolbar actionToolbar =  ActionManager.getInstance().createActionToolbar(PluginConstant.EDITOR_TOOLBAR,new DefaultActionGroup(searchAction,searchVisibleAction), true);
+            actionToolbar.setTargetComponent(myHtmlPanelWrapper);
+            JComponent actionToolbarComponent = actionToolbar.getComponent();
+            actionToolbarComponent.setVisible(false);
+            toolbarPanel.add(actionToolbarComponent);
+            toolbarPanel.setVisible(false);
+            myHtmlPanelWrapper.add(toolbarPanel,BorderLayout.NORTH);
         } catch (IllegalStateException e) {
             myHtmlPanelWrapper.add(new JBLabel(e.getMessage()), BorderLayout.CENTER);
         }
@@ -138,6 +200,13 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
     }
 
     @Override
+    public StructureViewBuilder getStructureViewBuilder() {
+        VirtualFile file = FileDocumentManager.getInstance().getFile(myDocument);
+        if (file == null || !file.isValid()) return null;
+        return StructureViewBuilder.PROVIDER.getStructureViewBuilder(file.getFileType(), file, myProject);
+    }
+
+    @Override
     public void dispose() {
         ApplicationManager.getApplication().getService(FileApplicationService.class)
                 .removeVirtualFile(myFile.getPath(), isPresentableUrl ? myProject.getPresentableUrl() : myProject.getName());
@@ -146,7 +215,7 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
         }
     }
 
-    private String createHtml(boolean isPresentableUrl) {
+    private String createHtml(boolean isPresentableUrl,MarkdownHtmlPanel tempPanel) {
         InputStream inputStream = null;
 
         try {
@@ -166,6 +235,7 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
                     .replace("{{projectUrl}}", isPresentableUrl ? myProject.getPresentableUrl() : "")
                     .replace("{{projectName}}", isPresentableUrl ? "" : myProject.getName())
                     .replace("{{ideStyle}}", getStyle(true))
+                    .replace("{{injectScript}}", tempPanel.getInjectScript())
                     ;
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -227,4 +297,42 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
         return String.format("rgba(%s,%s,%s,%s)", color.getRed(), color.getGreen(), color.getBlue(), df.format(color.getAlpha() / (float) 255));
     }
 
+    public void visibleToolbarPanel(boolean visible){
+        toolbarPanel.setVisible(visible);
+        if(visible) {
+            searchField.requestFocus();
+        }else {
+            searchField.setText("");
+        }
+    }
+
+    private class LabelMouseListener extends MouseAdapter{
+
+        private JBLabel label;
+
+        private boolean forward;
+
+        private Color color;
+
+        public LabelMouseListener(JBLabel label, boolean forward) {
+            this.label = label;
+            this.forward = forward;
+        }
+
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            myPanel.browserFind(searchField.getText(),forward);
+        }
+
+        @Override
+        public void mousePressed(MouseEvent e) {
+            color = label.getForeground();
+            label.setForeground(Color.BLUE);
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e) {
+            label.setForeground(color);
+        }
+    }
 }

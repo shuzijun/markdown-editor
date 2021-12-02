@@ -1,6 +1,7 @@
 package com.shuzijun.markdown.editor;
 
 
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.WeighedFileEditorProvider;
@@ -8,6 +9,7 @@ import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.jcef.JBCefApp;
+import com.shuzijun.markdown.model.PluginConstant;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -35,6 +37,7 @@ public class MarkdownPreviewFileEditorProvider  extends WeighedFileEditorProvide
     @NotNull
     @Override
     public FileEditorPolicy getPolicy() {
-        return FileEditorPolicy.PLACE_AFTER_DEFAULT_EDITOR;
+       String editorPolicy = PropertiesComponent.getInstance().getValue(PluginConstant.editorPolicyKey,FileEditorPolicy.PLACE_AFTER_DEFAULT_EDITOR.name());
+        return FileEditorPolicy.valueOf(editorPolicy);
     }
 }
