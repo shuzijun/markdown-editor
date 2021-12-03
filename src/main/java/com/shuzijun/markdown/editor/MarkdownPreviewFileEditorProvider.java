@@ -19,7 +19,9 @@ public class MarkdownPreviewFileEditorProvider  extends WeighedFileEditorProvide
     @Override
     public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
         FileType fileType = file.getFileType();
-        return fileType.getDefaultExtension().equals("md") && JBCefApp.isSupported();
+        return (fileType.getDefaultExtension().equals("md") ||
+                (fileType.getDefaultExtension().equals("") && file.getName().endsWith(".md")))
+                && JBCefApp.isSupported();
     }
 
     @NotNull
