@@ -7,6 +7,7 @@ import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.editor.colors.EditorColorsListener;
@@ -57,11 +58,14 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 
 /**
  * @author shuzijun
  */
 public class MarkdownPreviewFileEditor extends UserDataHolderBase implements FileEditor {
+
+    private static final Logger LOG = Logger.getInstance(MarkdownPreviewFileEditor.class);
 
     private final Project myProject;
     private final VirtualFile myFile;
@@ -278,15 +282,17 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
             sb.append("}");
             sb.append("::-webkit-scrollbar-track {background-color:").append(toHexColor(defaultBackground)).append(";}");
             sb.append("::-webkit-scrollbar-thumb {background-color:").append(toHexColor(scrollbarThumbColor)).append(";}");
-            sb.append(".vditor-reset {font-size:").append(editorColorsScheme.getEditorFontSize()).append(";");
+            sb.append(".vditor-reset {font-size:").append(editorColorsScheme.getEditorFontSize()).append("px;");
             sb.append(fontFamily);
             if (text != null) {
                 sb.append("color:").append(toHexColor(text)).append(";");
             }
             sb.append("}");
             sb.append(isTag ? "</style>" : "");
+            LOG.info("markdown style: " + sb + " ; Darcula: " + UIUtil.isUnderDarcula());
             return sb.toString();
         } catch (Exception e) {
+            LOG.info("Failed to create style", e);
             return "";
         }
 
@@ -294,6 +300,9 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
 
     private String toHexColor(Color color) {
         DecimalFormat df = new DecimalFormat("0.00");
+        DecimalFormatSymbols dfs = new DecimalFormatSymbols();
+        dfs.setDecimalSeparator('.');
+        df.setDecimalFormatSymbols(dfs);
         return String.format("rgba(%s,%s,%s,%s)", color.getRed(), color.getGreen(), color.getBlue(), df.format(color.getAlpha() / (float) 255));
     }
 
