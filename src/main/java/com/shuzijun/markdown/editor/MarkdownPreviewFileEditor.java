@@ -90,7 +90,7 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
         String url = UrlEscapers.urlFragmentEscaper().escape(URLUtil.FILE_PROTOCOL + URLUtil.SCHEME_SEPARATOR + FileUtils.separator() + myFile.getPath());
         MarkdownHtmlPanel tempPanel = null;
         try {
-            tempPanel = new MarkdownHtmlPanel(url, project);
+            tempPanel = new MarkdownHtmlPanel(url, project, true);
             tempPanel.loadHTML(createHtml(isPresentableUrl,tempPanel), url);
             myHtmlPanelWrapper.add(tempPanel.getComponent(), BorderLayout.CENTER);
             
@@ -132,7 +132,8 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
             toolbarPanel.add(close);
             AnAction searchAction = ActionManager.getInstance().getAction("markdown.search");
             AnAction searchVisibleAction = ActionManager.getInstance().getAction("markdown.searchVisible");
-            ActionToolbar actionToolbar =  ActionManager.getInstance().createActionToolbar(PluginConstant.EDITOR_TOOLBAR,new DefaultActionGroup(searchAction,searchVisibleAction), true);
+            AnAction openDevtoolsAction = ActionManager.getInstance().getAction("markdown.openDevtools");
+            ActionToolbar actionToolbar =  ActionManager.getInstance().createActionToolbar(PluginConstant.EDITOR_TOOLBAR,new DefaultActionGroup(searchAction,searchVisibleAction,openDevtoolsAction), true);
             actionToolbar.setTargetComponent(myHtmlPanelWrapper);
             JComponent actionToolbarComponent = actionToolbar.getComponent();
             actionToolbarComponent.setVisible(false);
@@ -144,6 +145,7 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
         }
         myPanel = tempPanel;
         myHtmlPanelWrapper.repaint();
+
         FileApplicationService fileApplicationService = ApplicationManager.getApplication().getService(FileApplicationService.class);
         fileApplicationService.putVirtualFile(myFile.getPath(), isPresentableUrl ? project.getPresentableUrl() : project.getName(), myFile);
 
@@ -219,6 +221,12 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
         }
     }
 
+    public void openDevtools(){
+        if(myPanel!=null) {
+            myPanel.openDevtools();
+        }
+    }
+
     private String createHtml(boolean isPresentableUrl,MarkdownHtmlPanel tempPanel) {
         InputStream inputStream = null;
 
@@ -288,6 +296,9 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
                 sb.append("color:").append(toHexColor(text)).append(";");
             }
             sb.append("}");
+            if (text != null) {
+                sb.append(".vditor-reset table {color:").append(toHexColor(text)).append(";}");
+            }
             sb.append(isTag ? "</style>" : "");
             LOG.info("markdown style: " + sb + " ; Darcula: " + UIUtil.isUnderDarcula());
             return sb.toString();

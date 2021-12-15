@@ -133,7 +133,7 @@ public class ExportFileController extends BaseController {
             this.fileName = fileName;
             jpanel = new JBPanel();
             jpanel.setLayout(new BorderLayout());
-            loginJCEFPanel = new MarkdownHtmlPanel(sourceUrl, project);
+            loginJCEFPanel = new MarkdownHtmlPanel(sourceUrl, project, false);
             loginJCEFPanel.getComponent().setMinimumSize(new Dimension(1000, 500));
             loginJCEFPanel.getComponent().setPreferredSize(new Dimension(1000, 500));
             loginJCEFPanel.loadHTML(html, sourceUrl);

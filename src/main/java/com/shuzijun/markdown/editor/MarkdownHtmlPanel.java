@@ -5,6 +5,10 @@ import com.intellij.ide.BrowserUtil;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
+import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.ActionPopupMenu;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -27,6 +31,8 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import org.apache.commons.lang.StringUtils;
 import org.cef.browser.CefBrowser;
 import org.cef.browser.CefFrame;
+import org.cef.callback.CefContextMenuParams;
+import org.cef.callback.CefMenuModel;
 import org.cef.handler.*;
 import org.cef.misc.BoolRef;
 import org.cef.network.CefRequest;
@@ -52,16 +58,18 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
     private final CefLifeSpanHandler lifeSpanHandler;
     private final JBCefJSQuery findJSQuery;
 
+    private final boolean isFileEditor;
     private final String url;
     private final Project project;
     private final List<String> iframe = new ArrayList<>();
     private static final List<String> headers = Arrays.asList(HttpHeaderNames.CONTENT_SECURITY_POLICY.toString(), HttpHeaderNames.CONTENT_ENCODING.toString()
             , HttpHeaderNames.CONTENT_LENGTH.toString());
 
-    public MarkdownHtmlPanel(@Nullable String url, Project project) {
+    public MarkdownHtmlPanel(@Nullable String url, Project project, boolean isFileEditor) {
         super("about:blank");
         this.url = url;
         this.project = project;
+        this.isFileEditor = isFileEditor;
         getJBCefClient().addRequestHandler(requestHandler = new CefRequestHandlerAdapter() {
             @Override
             public boolean onBeforeBrowse(CefBrowser browser, CefFrame frame, CefRequest request, boolean user_gesture, boolean is_redirect) {
@@ -143,6 +151,28 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
     }
 
     @Override
+    protected DefaultCefContextMenuHandler createDefaultContextMenuHandler() {
+
+        return new DefaultCefContextMenuHandler(true) {
+            @Override
+            public void onBeforeContextMenu(CefBrowser browser, CefFrame frame, CefContextMenuParams params, CefMenuModel model) {
+                if (isFileEditor) {
+                    model.clear();
+                    ActionGroup anAction = (ActionGroup) ActionManager.getInstance().getAction("EditorPopupMenu");
+                    ActionPopupMenu actionPopupMenu = ActionManager.getInstance().createActionPopupMenu(ActionPlaces.EDITOR_POPUP, anAction);
+                    actionPopupMenu.setTargetComponent(getComponent());
+                    final int x = params.getXCoord();
+                    final int y = params.getYCoord();
+                    ApplicationManager.getApplication().invokeLater(() -> actionPopupMenu.getComponent().show(getComponent(), x, y));
+                } else {
+                     super.onBeforeContextMenu(browser,frame,params,model);
+                }
+            }
+        };
+
+    }
+
+    @Override
     public void dispose() {
         getJBCefClient().removeRequestHandler(requestHandler, getCefBrowser());
         getJBCefClient().removeLifeSpanHandler(lifeSpanHandler, getCefBrowser());
@@ -189,7 +219,7 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
         return script;
     }
 
-    public void browserFind(String txt,boolean forward){
+    public void browserFind(String txt, boolean forward) {
         if (StringUtils.isEmpty(txt)) {
             getCefBrowser().stopFinding(true);
             return;
