@@ -56,9 +56,9 @@
                 description="searchVisible" >
             <keyboard-shortcut keymap="$default" first-keystroke="ESCAPE"/>
         </action>
-        <action id="markdown.openDevtools" class="com.shuzijun.markdown.editor.DevtoolsAction" text="openDevtools"
+        <action id="markdown.openDevtools" class="com.shuzijun.markdown.editor.DevtoolsAction" text="Open Devtools"
                 description="openDevtools" >
-            <keyboard-shortcut keymap="$default" first-keystroke="F12"/>
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
         </action>
     </actions>
 </idea-plugin>

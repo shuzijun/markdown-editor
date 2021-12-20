@@ -14,7 +14,6 @@ import com.intellij.openapi.editor.colors.EditorColorsListener;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.openapi.editor.colors.impl.EditorColorsSchemeImpl;
-import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
@@ -132,8 +131,7 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
             toolbarPanel.add(close);
             AnAction searchAction = ActionManager.getInstance().getAction("markdown.search");
             AnAction searchVisibleAction = ActionManager.getInstance().getAction("markdown.searchVisible");
-            AnAction openDevtoolsAction = ActionManager.getInstance().getAction("markdown.openDevtools");
-            ActionToolbar actionToolbar =  ActionManager.getInstance().createActionToolbar(PluginConstant.EDITOR_TOOLBAR,new DefaultActionGroup(searchAction,searchVisibleAction,openDevtoolsAction), true);
+            ActionToolbar actionToolbar =  ActionManager.getInstance().createActionToolbar(PluginConstant.EDITOR_TOOLBAR,new DefaultActionGroup(searchAction,searchVisibleAction), true);
             actionToolbar.setTargetComponent(myHtmlPanelWrapper);
             JComponent actionToolbarComponent = actionToolbar.getComponent();
             actionToolbarComponent.setVisible(false);
@@ -271,15 +269,12 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
             EditorColorsSchemeImpl editorColorsScheme = (EditorColorsSchemeImpl) EditorColorsManager.getInstance().getGlobalScheme();
             Color defaultBackground = editorColorsScheme.getDefaultBackground();
 
-            Color scrollbarThumbColor = EditorColors.SCROLLBAR_THUMB_COLOR.getDefaultColor();
+            Color scrollbarThumbColor  = EditorColors.SCROLLBAR_THUMB_COLOR.getDefaultColor();
             if (editorColorsScheme.getColor(EditorColors.SCROLLBAR_THUMB_COLOR) != null) {
                 scrollbarThumbColor = editorColorsScheme.getColor(EditorColors.SCROLLBAR_THUMB_COLOR);
             }
-            TextAttributes textAttributes = editorColorsScheme.getDirectlyDefinedAttributes().get("TEXT");
-            Color text = null;
-            if (textAttributes != null) {
-                text = textAttributes.getForegroundColor();
-            }
+
+            Color text = editorColorsScheme.getDefaultForeground();
             String fontFamily = "font-family:\""+editorColorsScheme.getEditorFontName()+"\",\"Helvetica Neue\",\"Luxi Sans\",\"DejaVu Sans\"," +
                     "\"Hiragino Sans GB\",\"Microsoft Yahei\",sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Noto Color Emoji\",\"Segoe UI Symbol\"," +
                     "\"Android Emoji\",\"EmojiSymbols\";";

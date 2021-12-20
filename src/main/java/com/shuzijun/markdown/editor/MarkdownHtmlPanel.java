@@ -1,31 +1,21 @@
 package com.shuzijun.markdown.editor;
 
-import com.alibaba.fastjson.JSONObject;
 import com.intellij.ide.BrowserUtil;
-import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationType;
-import com.intellij.notification.Notifications;
-import com.intellij.openapi.actionSystem.ActionGroup;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ActionPlaces;
-import com.intellij.openapi.actionSystem.ActionPopupMenu;
+import com.intellij.ide.DataManager;
+import com.intellij.ide.actions.searcheverywhere.SearchEverywhereManager;
+import com.intellij.ide.actions.searcheverywhere.SearchEverywhereManagerImpl;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.fileTypes.FileTypes;
-import com.intellij.openapi.fileTypes.ex.FileTypeChooser;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.jcef.JBCefJSQuery;
 import com.intellij.ui.jcef.JCEFHtmlPanel;
 import com.intellij.util.io.HttpRequests;
 import com.intellij.util.io.URLUtil;
 import com.intellij.util.ui.UIUtil;
-import com.shuzijun.markdown.model.PluginConstant;
 import com.shuzijun.markdown.util.FileUtils;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import org.apache.commons.lang.StringUtils;
@@ -45,7 +35,6 @@ import java.net.HttpURLConnection;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.function.Function;
 
 /**
  * @author shuzijun
@@ -56,14 +45,13 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
 
     private final CefRequestHandler requestHandler;
     private final CefLifeSpanHandler lifeSpanHandler;
-    private final JBCefJSQuery findJSQuery;
+    //private final JBCefJSQuery findJSQuery;
 
     private final boolean isFileEditor;
     private final String url;
     private final Project project;
     private final List<String> iframe = new ArrayList<>();
-    private static final List<String> headers = Arrays.asList(HttpHeaderNames.CONTENT_SECURITY_POLICY.toString(), HttpHeaderNames.CONTENT_ENCODING.toString()
-            , HttpHeaderNames.CONTENT_LENGTH.toString());
+    private static final List<String> headers = Arrays.asList(HttpHeaderNames.CONTENT_SECURITY_POLICY.toString(), HttpHeaderNames.CONTENT_ENCODING.toString(), HttpHeaderNames.CONTENT_LENGTH.toString());
 
     public MarkdownHtmlPanel(@Nullable String url, Project project, boolean isFileEditor) {
         super("about:blank");
@@ -82,7 +70,7 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
                     }
                     return false;
                 } else {
-                    openUrl(URLDecoder.decode(requestUrl, StandardCharsets.UTF_8));
+                    openUrl(URLDecoder.decode(frame.getURL(), StandardCharsets.UTF_8), URLDecoder.decode(requestUrl, StandardCharsets.UTF_8));
                     return true;
                 }
             }
@@ -99,21 +87,19 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
                     @Override
                     public CefResourceHandler getResourceHandler(CefBrowser browser, CefFrame frame, CefRequest request) {
                         try {
-                            return HttpRequests.request(request.getURL())
-                                    .throwStatusCodeException(false)
-                                    .connect(new HttpRequests.RequestProcessor<CefResourceHandler>() {
-                                        @Override
-                                        public CefResourceHandler process(HttpRequests.@NotNull Request request) throws IOException {
-                                            HttpURLConnection urlConnection = (HttpURLConnection) request.getConnection();
-                                            Map<String, String> header = new HashMap<>();
-                                            urlConnection.getHeaderFields().forEach((key, values) -> {
-                                                if (key != null && values != null && !headers.contains(key.toLowerCase())) {
-                                                    header.put(key, StringUtils.join(values.toArray(), ";"));
-                                                }
-                                            });
-                                            return new ProxyLoadHtmlResourceHandler(request.readString(), header, urlConnection.getResponseCode());
+                            return HttpRequests.request(request.getURL()).throwStatusCodeException(false).connect(new HttpRequests.RequestProcessor<CefResourceHandler>() {
+                                @Override
+                                public CefResourceHandler process(HttpRequests.@NotNull Request request) throws IOException {
+                                    HttpURLConnection urlConnection = (HttpURLConnection) request.getConnection();
+                                    Map<String, String> header = new HashMap<>();
+                                    urlConnection.getHeaderFields().forEach((key, values) -> {
+                                        if (key != null && values != null && !headers.contains(key.toLowerCase())) {
+                                            header.put(key, StringUtils.join(values.toArray(), ";"));
                                         }
                                     });
+                                    return new ProxyLoadHtmlResourceHandler(request.readString(), header, urlConnection.getResponseCode());
+                                }
+                            });
                         } catch (IOException io) {
 
                             return null;
@@ -126,12 +112,12 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
             @Override
             public boolean onBeforePopup(CefBrowser browser, CefFrame frame, String target_url, String target_frame_name) {
                 if (!target_url.startsWith(url)) {
-                    openUrl(URLDecoder.decode(target_url, StandardCharsets.UTF_8));
+                    openUrl(URLDecoder.decode(frame.getURL(), StandardCharsets.UTF_8), URLDecoder.decode(target_url, StandardCharsets.UTF_8));
                 }
                 return true;
             }
         }, getCefBrowser());
-        findJSQuery = JBCefJSQuery.create(this);
+        /*findJSQuery = JBCefJSQuery.create(this);
         findJSQuery.addHandler(new Function<String, JBCefJSQuery.Response>() {
             @Override
             public JBCefJSQuery.Response apply(String find) {
@@ -147,7 +133,7 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
                 getCefBrowser().find(1, findObject.getString("searchText"), findObject.getBoolean("forward"), false, true);
                 return null;
             }
-        });
+        });*/
     }
 
     @Override
@@ -165,7 +151,7 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
                     final int y = params.getYCoord();
                     ApplicationManager.getApplication().invokeLater(() -> actionPopupMenu.getComponent().show(getComponent(), x, y));
                 } else {
-                     super.onBeforeContextMenu(browser,frame,params,model);
+                    super.onBeforeContextMenu(browser, frame, params, model);
                 }
             }
         };
@@ -176,28 +162,21 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
     public void dispose() {
         getJBCefClient().removeRequestHandler(requestHandler, getCefBrowser());
         getJBCefClient().removeLifeSpanHandler(lifeSpanHandler, getCefBrowser());
-        Disposer.dispose(findJSQuery);
+        //Disposer.dispose(findJSQuery);
         super.dispose();
     }
 
-    private void openUrl(String url) {
+    private void openUrl(String frameUrl, String url) {
         if (url.startsWith(URLUtil.FILE_PROTOCOL)) {
             File file = new File(url.substring((URLUtil.FILE_PROTOCOL + URLUtil.SCHEME_SEPARATOR + FileUtils.separator()).length()));
-            if (!file.exists()) {
-                Notifications.Bus.notify(new Notification(PluginConstant.NOTIFICATION_GROUP, "Cannot Open File", file.getPath() + " not exist", NotificationType.INFORMATION), project);
-            } else if (file.isDirectory()) {
-                Notifications.Bus.notify(new Notification(PluginConstant.NOTIFICATION_GROUP, "Cannot Open Directory", file.getPath() + " is a directory", NotificationType.INFORMATION), project);
+            if (!file.exists() || file.isDirectory()) {
+                openSearchEverywhere(searchText(frameUrl, url));
             } else {
                 ApplicationManager.getApplication().invokeLater(() -> {
                     VirtualFile vf = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file);
                     FileEditor[] editors = FileEditorManager.getInstance(project).openFile(vf, false);
                     if (editors == null || editors.length == 0) {
-                        FileType fileType = FileTypeChooser.getKnownFileTypeOrAssociate(vf, project);
-                        if (fileType == null || fileType == FileTypes.UNKNOWN) {
-                            return;
-                        } else {
-                            FileEditorManager.getInstance(project).openFile(vf, false);
-                        }
+                        openSearchEverywhere(vf.getPath());
                     }
                 });
             }
@@ -206,17 +185,44 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
         }
     }
 
+    private void openSearchEverywhere(String searchText) {
+        SearchEverywhereManager manager = SearchEverywhereManager.getInstance(project);
+        if (!manager.isShown()) {
+            ApplicationManager.getApplication().invokeLater(() -> {
+                AnActionEvent anActionEvent = AnActionEvent.createFromDataContext(ActionPlaces.UNKNOWN, null, DataManager.getInstance().getDataContext(getComponent()));
+                manager.show(SearchEverywhereManagerImpl.ALL_CONTRIBUTORS_GROUP_ID, searchText, anActionEvent);
+            });
+        }
+    }
+
+    private String searchText(String frameUrl, String url) {
+        if (StringUtils.isBlank(url) || StringUtils.isBlank(frameUrl)) {
+            return url;
+        }
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < url.length(); i++) {
+            if (i >= frameUrl.length()) {
+                sb.append(url.substring(i));
+                break;
+            } else if (url.charAt(i) != frameUrl.charAt(i)) {
+                sb.append(url.substring(i));
+                break;
+            }
+        }
+        if (sb.length() == 0) {
+            sb.append(url.substring((URLUtil.FILE_PROTOCOL + URLUtil.SCHEME_SEPARATOR + FileUtils.separator()).length()));
+        }
+        return sb.toString();
+    }
+
     public void updateStyle(String style) {
-        getCefBrowser().executeJavaScript(
-                "updateStyle('" + style + "'," + UIUtil.isUnderDarcula() + ");", getCefBrowser().getURL(), 0);
+        getCefBrowser().executeJavaScript("updateStyle('" + style + "'," + UIUtil.isUnderDarcula() + ");", getCefBrowser().getURL(), 0);
     }
 
     public String getInjectScript() {
-        String script = "function find(searchText,forward){\n" +
-                "        let findJson = '{\"searchText\":\"'+searchText+'\",\"forward\":'+forward+'}';\n" +
-                "        " + findJSQuery.inject("findJson") +
-                "    }";
-        return script;
+        //String script = "function find(searchText,forward){\n" + "        let findJson = '{\"searchText\":\"'+searchText+'\",\"forward\":'+forward+'}';\n" + "        " + findJSQuery.inject("findJson") + "    }";
+        //return script;
+        return "";
     }
 
     public void browserFind(String txt, boolean forward) {
