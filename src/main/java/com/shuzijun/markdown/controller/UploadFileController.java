@@ -1,11 +1,15 @@
 package com.shuzijun.markdown.controller;
 
-import com.google.common.net.UrlEscapers;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.shuzijun.markdown.model.MarkdownResponse;
 import com.shuzijun.markdown.model.UploadResponse;
+import com.shuzijun.markdown.ui.UploadFileDialogWrapper;
+import com.shuzijun.markdown.util.FileUtils;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
@@ -19,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author shuzijun
@@ -48,11 +53,7 @@ public class UploadFileController extends BaseController {
         if (!markdownFile.exists()) {
             return fillJsonResponse(MarkdownResponse.error("unable to to find file " + fileParameter).toString());
         }
-        String assetsPath = markdownFile.getParent() + File.separator + "assets" + File.separator;
-        File assetsFile = new File(assetsPath);
-        if (!assetsFile.exists()) {
-            assetsFile.mkdirs();
-        }
+        Project project = getProject(projectNameParameter, projectUrlParameter);
 
         HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(request);
         List<InterfaceHttpData> datas = decoder.getBodyHttpDatas();
@@ -63,14 +64,18 @@ public class UploadFileController extends BaseController {
                     FileUpload fileUpload = (FileUpload) data;
                     String fileName = fileUpload.getFilename();
                     if (fileUpload.isCompleted()) {
-                        String newFileName = fileName;
-                        File file = new File(assetsPath + newFileName);
-                        if (file.exists()) {
-                            newFileName = System.currentTimeMillis() + "-" + newFileName;
-                            file = new File(assetsPath + newFileName);
+                        UploadFileDialogWrapper.FileSetting setting = getFileSetting(project, markdownFile, fileName);
+                        if (setting.isOk()) {
+                            File file = new File(setting.filePath());
+                            fileUpload.renameTo(file);
+                            FileUtils.refreshProjectDirectory(project, file.getPath());
+                            VirtualFile toFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file);
+                            uploadResponseData.addSuccMap(fileName,
+                                    (setting.isRelativePath() ? FileUtil.getRelativePath(virtualFile.getParent().getPath(), toFile.getPath(), '/') : toFile.getPath())
+                                            + (setting.isOverwrite() ? "?t=" + System.currentTimeMillis() : ""));
+                        } else {
+                            uploadResponseData.addErrFiles(fileName);
                         }
-                        fileUpload.renameTo(file);
-                        uploadResponseData.addSuccMap(fileName, "./assets/" + UrlEscapers.urlFragmentEscaper().escape(newFileName));
                     } else {
                         uploadResponseData.addErrFiles(fileName);
                     }
@@ -80,5 +85,19 @@ public class UploadFileController extends BaseController {
         } finally {
             decoder.destroy();
         }
+    }
+
+    public UploadFileDialogWrapper.FileSetting getFileSetting(Project project, File markdownFile, String filename) {
+        AtomicReference<UploadFileDialogWrapper.FileSetting> atomicReference = new AtomicReference<>();
+        ApplicationManager.getApplication().invokeAndWait(() -> {
+            String path = markdownFile.getParent() + File.separator + "assets";
+            UploadFileDialogWrapper fileDialogWrapper = new UploadFileDialogWrapper(project, path, filename);
+            if (fileDialogWrapper.showAndGet()) {
+                atomicReference.set(fileDialogWrapper.getSetting());
+            } else {
+                atomicReference.set(new UploadFileDialogWrapper.FileSetting());
+            }
+        });
+        return atomicReference.get();
     }
 }

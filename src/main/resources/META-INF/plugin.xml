@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>com.shuzijun.markdown-editor</id>
     <name>Markdown Editor</name>
-    <version>1.0</version>
+    <version>0</version>
     <vendor email="shuzijun0109@gmail.com">shuzijun</vendor>
 
     <description>
@@ -27,7 +27,7 @@
             </div>
          ]]>
     </description>
-
+    <change-notes></change-notes>
     <idea-version since-build="202.0"/>
     <!-- please see https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html
          on how to target different products -->

@@ -54,7 +54,7 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
     private static final List<String> headers = Arrays.asList(HttpHeaderNames.CONTENT_SECURITY_POLICY.toString(), HttpHeaderNames.CONTENT_ENCODING.toString(), HttpHeaderNames.CONTENT_LENGTH.toString());
 
     public MarkdownHtmlPanel(@Nullable String url, Project project, boolean isFileEditor) {
-        super("about:blank");
+        super(offScreenRendering(isFileEditor), null, null);
         this.url = url;
         this.project = project;
         this.isFileEditor = isFileEditor;
@@ -231,5 +231,13 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
             return;
         }
         getCefBrowser().find(1, txt, forward, false, true);
+    }
+
+    private static boolean offScreenRendering(boolean isFileEditor) {
+        /*if (!isFileEditor) {
+            return false;
+        }
+        return Registry.is("ide.browser.jcef.markdownView.osr.enabled", true);*/
+        return false;
     }
 }

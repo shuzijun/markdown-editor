@@ -287,6 +287,9 @@
                 "current": darcula ? "idea-dark" : "idea-light",
                 "path": vditorThemeCDN
             },
+            "markdown": {
+                "sanitize": false
+            },
             "maxWidth": $(window).width() - 100,
             "actions": ["desktop", "tablet", "mobile"],
             "hljs": {"style": darcula ? "dracula" : "github"},
@@ -298,7 +301,11 @@
             "enable": true
         },
         "upload": {
-            "url": uploadUrl
+            "url": uploadUrl,
+            format(files,responseText) {
+                saveTime = Date.now() + 5000;
+                return responseText;
+            }
         },
         "value": initValue(),
         blur(md) {
@@ -311,6 +318,7 @@
             editInput(md)
         }
     });
+
     function updateStyle(style,darcula){
         let newStyle = document.createElement('style');
         newStyle.id = 'ideaStyle';

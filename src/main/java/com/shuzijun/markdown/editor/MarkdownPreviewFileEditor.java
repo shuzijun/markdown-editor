@@ -9,7 +9,6 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.editor.colors.EditorColorsListener;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.colors.EditorColorsScheme;
@@ -28,6 +27,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBTextField;
+import com.intellij.ui.components.ScrollBarPainter;
 import com.intellij.util.Url;
 import com.intellij.util.Urls;
 import com.intellij.util.io.URLUtil;
@@ -90,54 +90,54 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
         MarkdownHtmlPanel tempPanel = null;
         try {
             tempPanel = new MarkdownHtmlPanel(url, project, true);
-            tempPanel.loadHTML(createHtml(isPresentableUrl,tempPanel), url);
+            tempPanel.loadHTML(createHtml(isPresentableUrl, tempPanel), url);
             myHtmlPanelWrapper.add(tempPanel.getComponent(), BorderLayout.CENTER);
-            
+
             MarkdownHtmlPanel finalTempPanel = tempPanel;
-            searchField.setPreferredSize(new Dimension(200,25));
+            searchField.setPreferredSize(new Dimension(200, 25));
             searchField.addKeyListener(new KeyAdapter() {
                 @Override
                 public void keyPressed(KeyEvent e) {
-                    if(e.getKeyCode() == KeyEvent.VK_ENTER){
-                        finalTempPanel.browserFind(searchField.getText(),true);
+                    if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                        finalTempPanel.browserFind(searchField.getText(), true);
                     }
                 }
             });
             searchField.getDocument().addDocumentListener(new DocumentAdapter() {
                 @Override
                 protected void textChanged(@NotNull DocumentEvent e) {
-                    finalTempPanel.browserFind(searchField.getText(),true);
+                    finalTempPanel.browserFind(searchField.getText(), true);
                 }
             });
-            JBLabel previousLabel = new JBLabel("<",JLabel.CENTER);
-            previousLabel.setPreferredSize(new Dimension(25,25));
-            previousLabel.addMouseListener(new LabelMouseListener(previousLabel,false));
-            JBLabel nextLabel = new JBLabel(">",JLabel.CENTER);
-            nextLabel.setPreferredSize(new Dimension(25,25));
-            nextLabel.addMouseListener(new LabelMouseListener(nextLabel,true));
-            JBLabel close = new JBLabel("x",JLabel.CENTER);
-            close.setPreferredSize(new Dimension(25,25));
-            close.addMouseListener(new LabelMouseListener(close,false){
+            JBLabel previousLabel = new JBLabel("<", JLabel.CENTER);
+            previousLabel.setPreferredSize(new Dimension(25, 25));
+            previousLabel.addMouseListener(new LabelMouseListener(previousLabel, false));
+            JBLabel nextLabel = new JBLabel(">", JLabel.CENTER);
+            nextLabel.setPreferredSize(new Dimension(25, 25));
+            nextLabel.addMouseListener(new LabelMouseListener(nextLabel, true));
+            JBLabel close = new JBLabel("x", JLabel.CENTER);
+            close.setPreferredSize(new Dimension(25, 25));
+            close.addMouseListener(new LabelMouseListener(close, false) {
                 @Override
                 public void mouseClicked(MouseEvent e) {
                     searchField.setText("");
                     toolbarPanel.setVisible(false);
                 }
             });
-            toolbarPanel.add( new JBLabel("find:",JLabel.CENTER));
+            toolbarPanel.add(new JBLabel("find:", JLabel.CENTER));
             toolbarPanel.add(searchField);
             toolbarPanel.add(previousLabel);
             toolbarPanel.add(nextLabel);
             toolbarPanel.add(close);
             AnAction searchAction = ActionManager.getInstance().getAction("markdown.search");
             AnAction searchVisibleAction = ActionManager.getInstance().getAction("markdown.searchVisible");
-            ActionToolbar actionToolbar =  ActionManager.getInstance().createActionToolbar(PluginConstant.EDITOR_TOOLBAR,new DefaultActionGroup(searchAction,searchVisibleAction), true);
+            ActionToolbar actionToolbar = ActionManager.getInstance().createActionToolbar(PluginConstant.EDITOR_TOOLBAR, new DefaultActionGroup(searchAction, searchVisibleAction), true);
             actionToolbar.setTargetComponent(myHtmlPanelWrapper);
             JComponent actionToolbarComponent = actionToolbar.getComponent();
             actionToolbarComponent.setVisible(false);
             toolbarPanel.add(actionToolbarComponent);
             toolbarPanel.setVisible(false);
-            myHtmlPanelWrapper.add(toolbarPanel,BorderLayout.NORTH);
+            myHtmlPanelWrapper.add(toolbarPanel, BorderLayout.NORTH);
         } catch (IllegalStateException e) {
             myHtmlPanelWrapper.add(new JBLabel(e.getMessage()), BorderLayout.CENTER);
         }
@@ -219,13 +219,13 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
         }
     }
 
-    public void openDevtools(){
-        if(myPanel!=null) {
+    public void openDevtools() {
+        if (myPanel != null) {
             myPanel.openDevtools();
         }
     }
 
-    private String createHtml(boolean isPresentableUrl,MarkdownHtmlPanel tempPanel) {
+    private String createHtml(boolean isPresentableUrl, MarkdownHtmlPanel tempPanel) {
         InputStream inputStream = null;
 
         try {
@@ -269,13 +269,13 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
             EditorColorsSchemeImpl editorColorsScheme = (EditorColorsSchemeImpl) EditorColorsManager.getInstance().getGlobalScheme();
             Color defaultBackground = editorColorsScheme.getDefaultBackground();
 
-            Color scrollbarThumbColor  = EditorColors.SCROLLBAR_THUMB_COLOR.getDefaultColor();
-            if (editorColorsScheme.getColor(EditorColors.SCROLLBAR_THUMB_COLOR) != null) {
-                scrollbarThumbColor = editorColorsScheme.getColor(EditorColors.SCROLLBAR_THUMB_COLOR);
+            Color scrollbarThumbColor = ScrollBarPainter.THUMB_OPAQUE_BACKGROUND.getDefaultColor();
+            if (editorColorsScheme.getColor(ScrollBarPainter.THUMB_OPAQUE_BACKGROUND) != null) {
+                scrollbarThumbColor = editorColorsScheme.getColor(ScrollBarPainter.THUMB_OPAQUE_BACKGROUND);
             }
 
             Color text = editorColorsScheme.getDefaultForeground();
-            String fontFamily = "font-family:\""+editorColorsScheme.getEditorFontName()+"\",\"Helvetica Neue\",\"Luxi Sans\",\"DejaVu Sans\"," +
+            String fontFamily = "font-family:\"" + editorColorsScheme.getEditorFontName() + "\",\"Helvetica Neue\",\"Luxi Sans\",\"DejaVu Sans\"," +
                     "\"Hiragino Sans GB\",\"Microsoft Yahei\",sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Noto Color Emoji\",\"Segoe UI Symbol\"," +
                     "\"Android Emoji\",\"EmojiSymbols\";";
             StringBuilder sb = new StringBuilder(isTag ? "<style id=\"ideaStyle\">" : "");
@@ -312,16 +312,16 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
         return String.format("rgba(%s,%s,%s,%s)", color.getRed(), color.getGreen(), color.getBlue(), df.format(color.getAlpha() / (float) 255));
     }
 
-    public void visibleToolbarPanel(boolean visible){
+    public void visibleToolbarPanel(boolean visible) {
         toolbarPanel.setVisible(visible);
-        if(visible) {
+        if (visible) {
             searchField.requestFocus();
-        }else {
+        } else {
             searchField.setText("");
         }
     }
 
-    private class LabelMouseListener extends MouseAdapter{
+    private class LabelMouseListener extends MouseAdapter {
 
         private JBLabel label;
 
@@ -336,7 +336,7 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
 
         @Override
         public void mouseClicked(MouseEvent e) {
-            myPanel.browserFind(searchField.getText(),forward);
+            myPanel.browserFind(searchField.getText(), forward);
         }
 
         @Override
