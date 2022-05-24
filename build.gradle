@@ -21,7 +21,7 @@ dependencies {
     api('io.sentry:sentry:1.7.9') {
         exclude module: 'slf4j-api'
     }
-    compile 'com.alibaba:fastjson:1.2.47'
+    compile 'com.alibaba:fastjson:1.2.69'
     api 'org.apache.commons:commons-lang3:3.9'
 }
 
