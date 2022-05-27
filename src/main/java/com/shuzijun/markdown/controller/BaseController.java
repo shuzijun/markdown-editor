@@ -9,7 +9,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.io.Responses;
 
 import java.io.IOException;
-import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +56,7 @@ public abstract class BaseController {
         if (parameters == null || parameters.size() != 1) {
             return null;
         }
-        return URLDecoder.decode(parameters.get(0), StandardCharsets.UTF_8);
+        return parameters.get(0);
     }
 
     protected FullHttpResponse fillHtmlResponse(String content) {

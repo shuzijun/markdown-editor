@@ -1,5 +1,7 @@
 package com.shuzijun.markdown.editor;
 
+import com.google.common.escape.Escaper;
+import com.google.common.net.PercentEscaper;
 import com.google.common.net.UrlEscapers;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -65,6 +67,13 @@ import java.text.DecimalFormatSymbols;
 public class MarkdownPreviewFileEditor extends UserDataHolderBase implements FileEditor {
 
     private static final Logger LOG = Logger.getInstance(MarkdownPreviewFileEditor.class);
+
+    static final String URL_PATH_OTHER_SAFE_CHARS_LACKING_PLUS =
+            "-._~" // Unreserved characters.
+                    + "!$'()*,;&=" // The subdelim characters (excluding '+').
+                    + "@:" // The gendelim characters permitted in paths.
+                    + "/?"; // PATH
+    private static final Escaper URL_FRAGMENT_ESCAPER = new PercentEscaper(URL_PATH_OTHER_SAFE_CHARS_LACKING_PLUS, true);
 
     private final Project myProject;
     private final VirtualFile myFile;
@@ -238,12 +247,12 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
             String template = new String(FileUtilRt.loadBytes(inputStream));
             return template.replace("{{service}}", servicePath.getScheme() + URLUtil.SCHEME_SEPARATOR + servicePath.getAuthority() + servicePath.getPath())
                     .replace("{{serverToken}}", StringUtils.isNotBlank(servicePath.getParameters()) ? servicePath.getParameters().substring(1) : "")
-                    .replace("{{filePath}}", UrlEscapers.urlFragmentEscaper().escape(myFile.getPath()))
+                    .replace("{{filePath}}", URL_FRAGMENT_ESCAPER.escape(myFile.getPath()))
                     .replace("{{Lang}}", PropertiesUtils.getInfo("Lang"))
                     .replace("{{darcula}}", UIUtil.isUnderDarcula() + "")
                     .replace("{{userTemplate}}", templateFile.exists() + "")
-                    .replace("{{projectUrl}}", isPresentableUrl ? myProject.getPresentableUrl() : "")
-                    .replace("{{projectName}}", isPresentableUrl ? "" : myProject.getName())
+                    .replace("{{projectUrl}}", isPresentableUrl ? URL_FRAGMENT_ESCAPER.escape(myProject.getPresentableUrl()) : "")
+                    .replace("{{projectName}}", isPresentableUrl ? "" : URL_FRAGMENT_ESCAPER.escape(myProject.getName()))
                     .replace("{{ideStyle}}", getStyle(true))
                     .replace("{{injectScript}}", tempPanel.getInjectScript())
                     ;

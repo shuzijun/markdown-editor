@@ -60,7 +60,7 @@ public class UploadFileDialogWrapper extends DialogWrapper {
                     } else {
                         overwrite = true;
                     }
-                } else if (file.getParentFile().exists()) {
+                } else if (!file.getParentFile().exists()) {
                     file.getParentFile().mkdirs();
                 }
                 super.doAction(e);
