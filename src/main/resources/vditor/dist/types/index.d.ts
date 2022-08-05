@@ -114,6 +114,8 @@ declare class Lute {
 
     public static New(): Lute;
 
+    public static EscapeHTMLStr(html:string): string;
+
     public static GetHeadingID(node: ILuteNode): string;
 
     public static NewNodeID(): string;
@@ -550,7 +552,7 @@ interface IHint {
     delay?: number;
     /** 默认表情，可从 [lute/emoji_map](https://github.com/88250/lute/blob/master/parse/emoji_map.go#L32) 中选取，也可自定义 */
     emoji?: IObject;
-    /** 表情图片地址。默认值: 'https://cdn.jsdelivr.net/npm/vditor@${VDITOR_VERSION}/dist/images/emoji' */
+    /** 表情图片地址。默认值: 'https://unpkg.com/vditor@${VDITOR_VERSION}/dist/images/emoji' */
     emojiPath?: string;
     extend?: IHintExtend[];
 }
@@ -640,7 +642,7 @@ interface IOptions {
     upload?: IUpload;
     /** @link https://ld246.com/article/1549638745630#options-classes */
     classes?: IClasses;
-    /** 配置自建 CDN 地址。默认值: 'https://cdn.jsdelivr.net/npm/vditor@${VDITOR_VERSION}' */
+    /** 配置自建 CDN 地址。默认值: 'https://unpkg.com/vditor@${VDITOR_VERSION}' */
     cdn?: string;
     /** tab 键操作字符串，支持 \t 及任意字符串 */
     tab?: string;
