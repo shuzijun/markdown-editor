@@ -2,6 +2,17 @@
 
 # Markdown Editor Changelog
 
+## 2.0.1
+
+### Added
+
+### Changed
+
+- Upgrade vditor to `3.8.17`
+### Fixed
+
+### Removed
+
 ## 2.0.0
 
 ### Added
