@@ -1,5 +1,6 @@
 package com.shuzijun.markdown.controller;
 
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -7,6 +8,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.shuzijun.markdown.model.MarkdownResponse;
+import com.shuzijun.markdown.model.PluginConstant;
 import com.shuzijun.markdown.model.UploadResponse;
 import com.shuzijun.markdown.ui.UploadFileDialogWrapper;
 import com.shuzijun.markdown.util.FileUtils;
@@ -63,6 +65,9 @@ public class UploadFileController extends BaseController {
                 if (data.getHttpDataType() == InterfaceHttpData.HttpDataType.FileUpload) {
                     FileUpload fileUpload = (FileUpload) data;
                     String fileName = fileUpload.getFilename();
+                    if (PropertiesComponent.getInstance().getValue(PluginConstant.editorAssetsNameAutoKey,"Rename").equalsIgnoreCase("Timestamp")){
+                        fileName = System.currentTimeMillis() + "_" + fileName;
+                    }
                     if (fileUpload.isCompleted()) {
                         UploadFileDialogWrapper.FileSetting setting = getFileSetting(project, markdownFile, fileName);
                         if (setting.isOk()) {
@@ -90,7 +95,7 @@ public class UploadFileController extends BaseController {
     public UploadFileDialogWrapper.FileSetting getFileSetting(Project project, File markdownFile, String filename) {
         AtomicReference<UploadFileDialogWrapper.FileSetting> atomicReference = new AtomicReference<>();
         ApplicationManager.getApplication().invokeAndWait(() -> {
-            String path = markdownFile.getParent() + File.separator + "assets";
+            String path = markdownFile.getParent() + File.separator + PropertiesComponent.getInstance().getValue(PluginConstant.editorAssetsPathKey, "assets");
             UploadFileDialogWrapper fileDialogWrapper = new UploadFileDialogWrapper(project, path, filename);
             if (fileDialogWrapper.showAndGet()) {
                 atomicReference.set(fileDialogWrapper.getSetting());

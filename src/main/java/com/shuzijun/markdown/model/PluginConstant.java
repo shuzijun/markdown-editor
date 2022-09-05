@@ -23,4 +23,8 @@ public class PluginConstant {
     public static final String CDN = "https://cdn.jsdelivr.net/gh/shuzijun/markdown-editor@";
 
     public static final String editorPolicyKey="markdown.editor.editorPolicy";
+
+    public static final String editorAssetsPathKey="markdown.editor.editorAssetsPath";
+
+    public static final String editorAssetsNameAutoKey="markdown.editor.editorAssetsName";
 }

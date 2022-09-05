@@ -28,6 +28,8 @@ public class SettingUI {
     private JButton syncButton;
     private TextFieldWithBrowseButton templatePathField;
     private JComboBox editorPolicyBox;
+    private JTextField assetsPath;
+    private JComboBox assetsName;
 
     public SettingUI() {
         templatePathField.setText(PluginConstant.TEMPLATE_PATH);
@@ -53,7 +55,8 @@ public class SettingUI {
             editorPolicyBox.addItem(value.name());
         }
         editorPolicyBox.setSelectedItem(PropertiesComponent.getInstance().getValue(PluginConstant.editorPolicyKey,FileEditorPolicy.PLACE_AFTER_DEFAULT_EDITOR.name()));
-
+        assetsPath.setText(PropertiesComponent.getInstance().getValue(PluginConstant.editorAssetsPathKey,"assets"));
+        assetsName.setSelectedItem(PropertiesComponent.getInstance().getValue(PluginConstant.editorAssetsNameAutoKey,"Rename"));
     }
 
     public JPanel getContentPane() {
@@ -61,11 +64,15 @@ public class SettingUI {
     }
 
     public boolean isModified() {
-        return !PropertiesComponent.getInstance().getValue(PluginConstant.editorPolicyKey,FileEditorPolicy.PLACE_AFTER_DEFAULT_EDITOR.name()).equals(editorPolicyBox.getSelectedItem());
+        return !PropertiesComponent.getInstance().getValue(PluginConstant.editorPolicyKey,FileEditorPolicy.PLACE_AFTER_DEFAULT_EDITOR.name()).equals(editorPolicyBox.getSelectedItem())
+                || PropertiesComponent.getInstance().getValue(PluginConstant.editorAssetsPathKey,"assets").equals(assetsPath.getText())
+                || PropertiesComponent.getInstance().getValue(PluginConstant.editorAssetsNameAutoKey,"Rename").equals(assetsName.getSelectedItem());
     }
 
     public void apply() {
         PropertiesComponent.getInstance().setValue(PluginConstant.editorPolicyKey,editorPolicyBox.getSelectedItem().toString());
+        PropertiesComponent.getInstance().setValue(PluginConstant.editorAssetsPathKey,assetsPath.getText());
+        PropertiesComponent.getInstance().setValue(PluginConstant.editorAssetsNameAutoKey,assetsName.getSelectedItem().toString());
     }
 
     public void reset() {
