@@ -2,6 +2,17 @@
 
 # Markdown Editor Changelog
 
+## 2.0.2
+
+### Added
+
+### Changed
+
+- fix [#68](https://github.com/shuzijun/markdown-editor/issues/68)
+### Fixed
+
+### Removed
+
 ## 2.0.1
 
 ### Added
