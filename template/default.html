@@ -49,6 +49,7 @@
         <path d="M703.3 502.7a32.1 27.5 0 1 0 64.2 0 32.1 27.5 0 1 0-64.2 0Z" fill="#EFAFF9" p-id="2818"></path>
     </svg>
 </div>
+
 </body>
 <script>
     $.ajaxSettings.async = false;
@@ -73,6 +74,12 @@
         }
         appendSyncedTip(!initError);
         vditor.vditor.toolbar.elements.export.querySelectorAll(".vditor-hint")[0].innerHTML="<button onclick='exportFile(\"pdf\")'>PDF</button>\n<button onclick='exportFile(\"html\")'>HTML</button>"
+        let infoHtml = vditor.vditor.toolbar.elements.info.querySelectorAll('button')[0].outerHTML;
+        vditor.vditor.toolbar.elements.info.querySelectorAll('button')[0].remove()
+        vditor.vditor.toolbar.elements.info.innerHTML = infoHtml;
+        vditor.vditor.toolbar.elements.info.querySelectorAll('button')[0].onclick = function (){
+            vditor.vditor.tip.show(document.getElementById("editorInfo").innerHTML, 0);
+        };
         /*const contentMenuStyle = document.getElementById("contentMenu").style;
         const notepad = document.getElementsByClassName("vditor-content")[0];
         notepad.addEventListener('contextmenu', function(e) {
@@ -218,6 +225,7 @@
 
     const vditor = new Vditor('vditor', {
         "theme": darcula ? "dark" : "light",
+        "height": document.documentElement.clientHeight,
         "lang": "{{Lang}}",
         "cache": {
             "enable": false
@@ -268,13 +276,7 @@
                     "preview",
                     "devtools",
                     "export",
-                    {
-                        "name": "myInfo",
-                        "icon": "info",
-                        click(event, vditor) {
-                            vditor.tip.show(document.getElementById("editorInfo").innerHTML, 0);
-                        }
-                    }
+                    "info"
                 ],
             },
         ],
@@ -284,6 +286,9 @@
             "theme": {
                 "current": darcula ? "idea-dark" : "idea-light",
                 "path": vditorThemeCDN
+            },
+            "markdown": {
+                "sanitize": false
             },
             "maxWidth": $(window).width() - 100,
             "actions": ["desktop", "tablet", "mobile"],
@@ -296,7 +301,11 @@
             "enable": true
         },
         "upload": {
-            "url": uploadUrl
+            "url": uploadUrl,
+            format(files,responseText) {
+                saveTime = Date.now() + 5000;
+                return responseText;
+            }
         },
         "value": initValue(),
         blur(md) {
@@ -309,6 +318,7 @@
             editInput(md)
         }
     });
+
     function updateStyle(style,darcula){
         let newStyle = document.createElement('style');
         newStyle.id = 'ideaStyle';
@@ -317,6 +327,9 @@
         oldStyle.parentNode.replaceChild(newStyle,oldStyle);
         vditor.setTheme(darcula? "dark" : "light",darcula ? "idea-dark" : "idea-light",darcula ? "dracula" : "github",vditorThemeCDN)
     }
+</script>
+<script>
+    {{injectScript}}
 </script>
 {{ideStyle}}
 </html>
