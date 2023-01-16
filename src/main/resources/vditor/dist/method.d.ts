@@ -18,6 +18,8 @@ declare class Vditor {
     }) => void;
     /** 流程图/时序图/甘特图渲染 */
     static mermaidRender: (element: HTMLElement, cdn: string, theme: string) => void;
+    /** 支持markdown的思维导图 */
+    static markmapRender: (element: HTMLElement, cdn: string, theme: string) => void;
     /** flowchart.js 渲染 */
     static flowchartRender: (element: HTMLElement, cdn?: string) => void;
     /** 图表渲染 */

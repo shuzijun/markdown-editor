@@ -7,6 +7,10 @@ export declare const mermaidRenderAdapter: {
     getCode: (el: Element) => string;
     getElements: (element: HTMLElement) => NodeListOf<Element>;
 };
+export declare const markmapRenderAdapter: {
+    getCode: (el: Element) => string;
+    getElements: (element: HTMLElement) => NodeListOf<Element>;
+};
 export declare const mindmapRenderAdapter: {
     getCode: (el: Element) => string;
     getElements: (el: HTMLElement | Document) => NodeListOf<Element>;
