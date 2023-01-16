@@ -2,7 +2,7 @@
 
 # Markdown Editor Changelog
 
-## 2.0.3
+## 2.0.4
 
 ### Added
 - Open file wait for animation

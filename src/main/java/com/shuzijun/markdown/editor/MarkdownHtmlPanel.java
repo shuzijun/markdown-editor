@@ -42,6 +42,8 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -318,7 +320,21 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
             getCefBrowser().stopFinding(true);
             return;
         }
-        getCefBrowser().find(1, txt, forward, false, true);
+        CefBrowser cefBrowser = getCefBrowser();
+
+        try {
+            Method findMethod = CefBrowser.class.getMethod("find",String.class,boolean.class,boolean.class,boolean.class);
+            findMethod.invoke(cefBrowser,txt, forward, false, true);
+        } catch (NoSuchMethodException e) {
+            try {
+                Method findMethod = CefBrowser.class.getMethod("find",int.class,String.class,boolean.class,boolean.class,boolean.class);
+                findMethod.invoke(cefBrowser,1, txt, forward, false, true);
+            } catch (Exception ex) {
+                LOG.error(ex);
+            }
+        } catch (Exception e) {
+            LOG.error(e);
+        }
     }
 
     private static boolean offScreenRendering(boolean isFileEditor) {
