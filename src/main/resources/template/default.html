@@ -327,6 +327,17 @@
         oldStyle.parentNode.replaceChild(newStyle,oldStyle);
         vditor.setTheme(darcula? "dark" : "light",darcula ? "idea-dark" : "idea-light",darcula ? "dracula" : "github",vditorThemeCDN)
     }
+
+
+    function updateHeight(width,height){
+        setTimeout(function(width,height){
+            if (window.innerHeight < height) {
+                return
+            }
+            let vditorDom = document.getElementById('vditor');
+            vditorDom.style.paddingTop = (window.innerHeight-height)+"px";
+        },500,width,height)
+    }
 </script>
 <script>
     {{injectScript}}

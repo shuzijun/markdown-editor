@@ -99,7 +99,7 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
         MarkdownHtmlPanel tempPanel = null;
         try {
             tempPanel = new MarkdownHtmlPanel(url, project, true);
-            tempPanel.loadHTML(createHtml(isPresentableUrl, tempPanel), url);
+            tempPanel.loadMyHTML(createHtml(isPresentableUrl, tempPanel), url);
             myHtmlPanelWrapper.add(tempPanel.getComponent(), BorderLayout.CENTER);
 
             MarkdownHtmlPanel finalTempPanel = tempPanel;

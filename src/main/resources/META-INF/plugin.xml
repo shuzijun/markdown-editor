@@ -48,16 +48,16 @@
 
     <actions>
         <!-- Add your actions here -->
-        <action id="markdown.search" class="com.shuzijun.markdown.editor.SearchAction" text="search"
-                description="search" >
+        <action id="markdown.search" class="com.shuzijun.markdown.editor.SearchAction" text="Search"
+                description="Search" >
             <keyboard-shortcut keymap="$default" first-keystroke="control F"/>
         </action>
-        <action id="markdown.searchVisible" class="com.shuzijun.markdown.editor.SearchVisibleAction" text="searchVisible"
-                description="searchVisible" >
-            <keyboard-shortcut keymap="$default" first-keystroke="ESCAPE"/>
+        <action id="markdown.searchVisible" class="com.shuzijun.markdown.editor.SearchVisibleAction" text="SearchVisible"
+                description="SearchVisible" >
+            <!-- <keyboard-shortcut keymap="$default" first-keystroke="ESCAPE"/> -->
         </action>
         <action id="markdown.openDevtools" class="com.shuzijun.markdown.editor.DevtoolsAction" text="Open Devtools"
-                description="openDevtools" >
+                description="OpenDevtools" >
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
         </action>
     </actions>

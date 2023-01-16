@@ -1,21 +1,28 @@
 package com.shuzijun.markdown.editor;
 
+import com.intellij.CommonBundle;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.actions.searcheverywhere.SearchEverywhereManager;
 import com.intellij.ide.actions.searcheverywhere.SearchEverywhereManagerImpl;
+import com.intellij.ide.plugins.MultiPanel;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.jcef.JCEFHtmlPanel;
 import com.intellij.util.io.HttpRequests;
 import com.intellij.util.io.URLUtil;
 import com.intellij.util.ui.UIUtil;
+import com.shuzijun.markdown.model.PluginConstant;
 import com.shuzijun.markdown.util.FileUtils;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import org.apache.commons.lang.StringUtils;
@@ -29,12 +36,18 @@ import org.cef.network.CefRequest;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author shuzijun
@@ -42,6 +55,14 @@ import java.util.*;
 public class MarkdownHtmlPanel extends JCEFHtmlPanel {
 
     private static final Logger LOG = Logger.getInstance(MarkdownHtmlPanel.class);
+
+    private static final Integer LOADING_KEY = 1;
+    private static final Integer CONTENT_KEY = 0;
+
+    private final MultiPanel multiPanel;
+    private final JBLoadingPanel loadingPanel = new JBLoadingPanel(new BorderLayout(), this);
+    private final AtomicBoolean initial = new AtomicBoolean(true);
+
 
     private final CefRequestHandler requestHandler;
     private final CefLifeSpanHandler lifeSpanHandler;
@@ -58,6 +79,58 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
         this.url = url;
         this.project = project;
         this.isFileEditor = isFileEditor;
+        this.loadingPanel.setLoadingText(CommonBundle.getLoadingTreeNodeText());
+
+        JComponent myComponent = super.getComponent();
+        multiPanel = new MultiPanel() {
+            @Override
+            protected JComponent create(Integer key) {
+                if (key == LOADING_KEY){
+                    return loadingPanel;
+                }else if (key == CONTENT_KEY){
+                    return myComponent;
+                } else {
+                    throw new IllegalArgumentException("Unknown key:" + key);
+                }
+            }
+            @Override
+            public ActionCallback select(Integer key, boolean now){
+                ActionCallback callback = super.select(key, now);
+                if (key == CONTENT_KEY) {
+                    UIUtil.invokeLaterIfNeeded(this::requestFocusInWindow);
+                }
+                return callback;
+            }
+
+        };
+
+        multiPanel.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                updateHeight(myComponent.getWidth(),myComponent.getHeight());
+                multiPanel.repaint();
+            }
+        });
+
+        getJBCefClient().addLoadHandler(new  CefLoadHandlerAdapter() {
+            public void onLoadingStateChange(CefBrowser browser, boolean isLoading, boolean canGoBack, boolean canGoForward) {
+                if (initial.get()) {
+                    if (isLoading) {
+                        ApplicationManager.getApplication().invokeLater(() -> {
+                            loadingPanel.startLoading();
+                            multiPanel.select(LOADING_KEY, true);
+                        }, ModalityState.defaultModalityState());
+                    } else {
+                        initial.set(false);
+                        ApplicationManager.getApplication().invokeLater(() -> {
+                            loadingPanel.stopLoading();
+                            multiPanel.select(CONTENT_KEY, true);
+                        },ModalityState.defaultModalityState());
+                    }
+                }
+            }
+        }, getCefBrowser());
+
         getJBCefClient().addRequestHandler(requestHandler = new CefRequestHandlerAdapter() {
             @Override
             public boolean onBeforeBrowse(CefBrowser browser, CefFrame frame, CefRequest request, boolean user_gesture, boolean is_redirect) {
@@ -134,6 +207,15 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
                 return null;
             }
         });*/
+    }
+
+    @Override
+    public @NotNull JComponent getComponent() {
+        return multiPanel;
+    }
+    public void loadMyHTML(@NotNull String html, @NotNull String url) {
+        multiPanel.select(CONTENT_KEY, true);
+        this.loadHTML(html,url);
     }
 
     @Override
@@ -217,6 +299,12 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
 
     public void updateStyle(String style) {
         getCefBrowser().executeJavaScript("updateStyle('" + style + "'," + UIUtil.isUnderDarcula() + ");", getCefBrowser().getURL(), 0);
+    }
+
+    public void updateHeight(int width,int height) {
+        if (PropertiesComponent.getInstance().getBoolean(PluginConstant.editorFixToolbarKey,true)){
+            getCefBrowser().executeJavaScript("updateHeight(" + width + "," + height + ");", getCefBrowser().getURL(), 0);
+        }
     }
 
     public String getInjectScript() {

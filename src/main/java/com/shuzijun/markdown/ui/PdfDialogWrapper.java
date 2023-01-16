@@ -26,7 +26,7 @@ import java.awt.event.ActionEvent;
 public class PdfDialogWrapper extends DialogWrapper {
 
     private JPanel jpanel;
-    private JCEFHtmlPanel loginJCEFPanel;
+    private MarkdownHtmlPanel loginJCEFPanel;
     private String fileName;
     private String message = "";
     private Project project;
@@ -40,7 +40,7 @@ public class PdfDialogWrapper extends DialogWrapper {
         loginJCEFPanel = new MarkdownHtmlPanel(sourceUrl, project, false);
         loginJCEFPanel.getComponent().setMinimumSize(new Dimension(1000, 500));
         loginJCEFPanel.getComponent().setPreferredSize(new Dimension(1000, 500));
-        loginJCEFPanel.loadHTML(html, sourceUrl);
+        loginJCEFPanel.loadMyHTML(html, sourceUrl);
         jpanel.add(new JBScrollPane(loginJCEFPanel.getComponent(), JBScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JBScrollPane.HORIZONTAL_SCROLLBAR_NEVER), BorderLayout.CENTER);
         jpanel.repaint();
         setModal(false);

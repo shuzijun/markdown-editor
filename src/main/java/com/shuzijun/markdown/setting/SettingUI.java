@@ -30,6 +30,7 @@ public class SettingUI {
     private JComboBox editorPolicyBox;
     private JTextField assetsPath;
     private JComboBox assetsName;
+    private JCheckBox fixToolbar;
 
     public SettingUI() {
         templatePathField.setText(PluginConstant.TEMPLATE_PATH);
@@ -57,6 +58,7 @@ public class SettingUI {
         editorPolicyBox.setSelectedItem(PropertiesComponent.getInstance().getValue(PluginConstant.editorPolicyKey,FileEditorPolicy.PLACE_AFTER_DEFAULT_EDITOR.name()));
         assetsPath.setText(PropertiesComponent.getInstance().getValue(PluginConstant.editorAssetsPathKey,"assets"));
         assetsName.setSelectedItem(PropertiesComponent.getInstance().getValue(PluginConstant.editorAssetsNameAutoKey,"Rename"));
+        fixToolbar.setSelected(PropertiesComponent.getInstance().getBoolean(PluginConstant.editorFixToolbarKey,true));
     }
 
     public JPanel getContentPane() {
@@ -65,14 +67,16 @@ public class SettingUI {
 
     public boolean isModified() {
         return !PropertiesComponent.getInstance().getValue(PluginConstant.editorPolicyKey,FileEditorPolicy.PLACE_AFTER_DEFAULT_EDITOR.name()).equals(editorPolicyBox.getSelectedItem())
-                || PropertiesComponent.getInstance().getValue(PluginConstant.editorAssetsPathKey,"assets").equals(assetsPath.getText())
-                || PropertiesComponent.getInstance().getValue(PluginConstant.editorAssetsNameAutoKey,"Rename").equals(assetsName.getSelectedItem());
+                || !PropertiesComponent.getInstance().getValue(PluginConstant.editorAssetsPathKey,"assets").equals(assetsPath.getText())
+                || !PropertiesComponent.getInstance().getValue(PluginConstant.editorAssetsNameAutoKey,"Rename").equals(assetsName.getSelectedItem())
+                || !(PropertiesComponent.getInstance().getBoolean(PluginConstant.editorFixToolbarKey,true) == fixToolbar.isSelected());
     }
 
     public void apply() {
         PropertiesComponent.getInstance().setValue(PluginConstant.editorPolicyKey,editorPolicyBox.getSelectedItem().toString());
         PropertiesComponent.getInstance().setValue(PluginConstant.editorAssetsPathKey,assetsPath.getText());
         PropertiesComponent.getInstance().setValue(PluginConstant.editorAssetsNameAutoKey,assetsName.getSelectedItem().toString());
+        PropertiesComponent.getInstance().setValue(PluginConstant.editorFixToolbarKey,fixToolbar.isSelected(),true);
     }
 
     public void reset() {
