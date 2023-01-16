@@ -619,6 +619,14 @@ interface IOptions {
     mode?: "wysiwyg" | "sv" | "ir";
     /** @link https://ld246.com/article/1549638745630#options-preview */
     preview?: IPreview;
+    link?: {
+        isOpen?: boolean;
+        click?: (bom: Element) => void;
+    },
+    image?: {
+        isPreview?: boolean;
+        preview?: (bom: Element) => void;
+    },
     /** @link https://ld246.com/article/1549638745630#options-hint */
     hint?: IHint;
     /** @link https://ld246.com/article/1549638745630#options-toolbarConfig */
@@ -693,7 +701,7 @@ interface IVditor {
     outline: {
         element: HTMLElement,
         render(vditor: IVditor): string,
-        toggle(vditor: IVditor, show?: boolean): void,
+        toggle(vditor: IVditor, show?: boolean, focus?: boolean): void,
     };
     toolbar?: {
         elements?: { [key: string]: HTMLElement },
