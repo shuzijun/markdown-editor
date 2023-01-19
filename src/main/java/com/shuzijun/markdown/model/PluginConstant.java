@@ -29,4 +29,6 @@ public class PluginConstant {
     public static final String editorAssetsNameAutoKey="markdown.editor.editorAssetsName";
 
     public static final String editorFixToolbarKey="markdown.editor.editorFixToolbar";
+
+    public static final String editorTextOperationKey="markdown.editor.editorTextOperation";
 }

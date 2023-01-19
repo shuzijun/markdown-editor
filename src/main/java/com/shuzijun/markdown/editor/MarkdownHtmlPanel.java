@@ -1,8 +1,8 @@
 package com.shuzijun.markdown.editor;
 
+import com.alibaba.fastjson.JSONObject;
 import com.intellij.CommonBundle;
-import com.intellij.ide.BrowserUtil;
-import com.intellij.ide.DataManager;
+import com.intellij.ide.*;
 import com.intellij.ide.actions.searcheverywhere.SearchEverywhereManager;
 import com.intellij.ide.actions.searcheverywhere.SearchEverywhereManagerImpl;
 import com.intellij.ide.plugins.MultiPanel;
@@ -13,11 +13,15 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ActionCallback;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.components.JBLoadingPanel;
+import com.intellij.ui.jcef.JBCefBrowserBase;
+import com.intellij.ui.jcef.JBCefJSQuery;
 import com.intellij.ui.jcef.JCEFHtmlPanel;
 import com.intellij.util.io.HttpRequests;
 import com.intellij.util.io.URLUtil;
@@ -33,16 +37,18 @@ import org.cef.callback.CefMenuModel;
 import org.cef.handler.*;
 import org.cef.misc.BoolRef;
 import org.cef.network.CefRequest;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.URLDecoder;
@@ -50,6 +56,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 
 /**
  * @author shuzijun
@@ -61,14 +68,14 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
     private static final Integer LOADING_KEY = 1;
     private static final Integer CONTENT_KEY = 0;
 
-    private final MultiPanel multiPanel;
+    private final MyMultiPanel multiPanel;
     private final JBLoadingPanel loadingPanel = new JBLoadingPanel(new BorderLayout(), this);
     private final AtomicBoolean initial = new AtomicBoolean(true);
 
 
     private final CefRequestHandler requestHandler;
     private final CefLifeSpanHandler lifeSpanHandler;
-    //private final JBCefJSQuery findJSQuery;
+    private final JBCefJSQuery selectValueJSQuery;
 
     private final boolean isFileEditor;
     private final String url;
@@ -84,27 +91,7 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
         this.loadingPanel.setLoadingText(CommonBundle.getLoadingTreeNodeText());
 
         JComponent myComponent = super.getComponent();
-        multiPanel = new MultiPanel() {
-            @Override
-            protected JComponent create(Integer key) {
-                if (key == LOADING_KEY){
-                    return loadingPanel;
-                }else if (key == CONTENT_KEY){
-                    return myComponent;
-                } else {
-                    throw new IllegalArgumentException("Unknown key:" + key);
-                }
-            }
-            @Override
-            public ActionCallback select(Integer key, boolean now){
-                ActionCallback callback = super.select(key, now);
-                if (key == CONTENT_KEY) {
-                    UIUtil.invokeLaterIfNeeded(this::requestFocusInWindow);
-                }
-                return callback;
-            }
-
-        };
+        multiPanel = new MyMultiPanel(myComponent);
 
         multiPanel.addComponentListener(new ComponentAdapter() {
             @Override
@@ -192,23 +179,14 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
                 return true;
             }
         }, getCefBrowser());
-        /*findJSQuery = JBCefJSQuery.create(this);
-        findJSQuery.addHandler(new Function<String, JBCefJSQuery.Response>() {
-            @Override
-            public JBCefJSQuery.Response apply(String find) {
-                if (StringUtils.isEmpty(find)) {
-                    getCefBrowser().stopFinding(true);
-                    return null;
-                }
-                JSONObject findObject = JSONObject.parseObject(find);
-                if (StringUtils.isEmpty(findObject.getString("searchText"))) {
-                    getCefBrowser().stopFinding(true);
-                    return null;
-                }
-                getCefBrowser().find(1, findObject.getString("searchText"), findObject.getBoolean("forward"), false, true);
+        selectValueJSQuery = JBCefJSQuery.create((JBCefBrowserBase)this);
+        selectValueJSQuery.addHandler(value -> {
+            if (StringUtils.isEmpty(value)) {
                 return null;
             }
-        });*/
+            CopyPasteManager.getInstance().setContents(new StringSelection(value));
+            return null;
+        });
     }
 
     @Override
@@ -246,7 +224,7 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
     public void dispose() {
         getJBCefClient().removeRequestHandler(requestHandler, getCefBrowser());
         getJBCefClient().removeLifeSpanHandler(lifeSpanHandler, getCefBrowser());
-        //Disposer.dispose(findJSQuery);
+        Disposer.dispose(selectValueJSQuery);
         super.dispose();
     }
 
@@ -310,9 +288,21 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
     }
 
     public String getInjectScript() {
-        //String script = "function find(searchText,forward){\n" + "        let findJson = '{\"searchText\":\"'+searchText+'\",\"forward\":'+forward+'}';\n" + "        " + findJSQuery.inject("findJson") + "    }";
-        //return script;
-        return "";
+
+        String savaTime = "function jsAddTime(){saveTime = Date.now() + 1000;}\n";
+
+        String copy = "function jsCopy(){\n"
+                + "        let value = vditor.getSelection();\n" +
+                selectValueJSQuery.inject("value") +
+                "    }\n";
+        String cut = "function jsCut(){\n" +
+                "        let value = vditor.getSelection();\nvditor.deleteValue()\n" +
+                selectValueJSQuery.inject("value") +
+                "    }\n";
+        String paste = "function jsPaste(value){\n" +
+                "        vditor.updateValue(value);\n" +
+                "    }\n";
+        return savaTime + copy + cut + paste;
     }
 
     public void browserFind(String txt, boolean forward) {
@@ -343,5 +333,101 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
         }
         return Registry.is("ide.browser.jcef.markdownView.osr.enabled", true);*/
         return false;
+    }
+
+    class MyMultiPanel extends MultiPanel implements DataProvider {
+
+        private final JComponent myComponent;
+
+        MyMultiPanel(JComponent myComponent) {
+            this.myComponent = myComponent;
+        }
+
+        @Override
+        protected JComponent create(Integer key) {
+            if (key == LOADING_KEY){
+                return loadingPanel;
+            }else if (key == CONTENT_KEY){
+                return myComponent;
+            } else {
+                throw new IllegalArgumentException("Unknown key:" + key);
+            }
+        }
+        @Override
+        public ActionCallback select(Integer key, boolean now){
+            ActionCallback callback = super.select(key, now);
+            if (key == CONTENT_KEY) {
+                UIUtil.invokeLaterIfNeeded(this::requestFocusInWindow);
+            }
+            return callback;
+        }
+
+        @Override
+        public @Nullable Object getData(@NotNull @NonNls String dataId) {
+            if (PlatformDataKeys.COPY_PROVIDER.is(dataId)) {
+                return new CopyProvider() {
+                    @Override
+                    public void performCopy(@NotNull DataContext dataContext) {
+                        getCefBrowser().executeJavaScript("jsAddTime()", getCefBrowser().getURL(), 0);
+                        getCefBrowser().executeJavaScript("jsCopy()", getCefBrowser().getURL(), 0);
+                    }
+
+                    @Override
+                    public boolean isCopyEnabled(@NotNull DataContext dataContext) {
+                        return PropertiesComponent.getInstance().getBoolean(PluginConstant.editorTextOperationKey, true);
+                    }
+
+                    @Override
+                    public boolean isCopyVisible(@NotNull DataContext dataContext) {
+                        return PropertiesComponent.getInstance().getBoolean(PluginConstant.editorTextOperationKey, true);
+                    }
+                };
+            }
+            if (PlatformDataKeys.CUT_PROVIDER.is(dataId)) {
+                return new CutProvider() {
+                    @Override
+                    public void performCut(@NotNull DataContext dataContext) {
+                        getCefBrowser().executeJavaScript("jsAddTime()", getCefBrowser().getURL(), 0);
+                        getCefBrowser().executeJavaScript("jsCut()", getCefBrowser().getURL(), 0);
+                    }
+
+                    @Override
+                    public boolean isCutEnabled(@NotNull DataContext dataContext) {
+                        return PropertiesComponent.getInstance().getBoolean(PluginConstant.editorTextOperationKey, true);
+                    }
+
+                    @Override
+                    public boolean isCutVisible(@NotNull DataContext dataContext) {
+                        return PropertiesComponent.getInstance().getBoolean(PluginConstant.editorTextOperationKey, true);
+                    }
+                };
+            }
+            if (PlatformDataKeys.PASTE_PROVIDER.is(dataId)) {
+                return new PasteProvider() {
+
+                    @Override
+                    public void performPaste(@NotNull DataContext dataContext) {
+                        String content = CopyPasteManager.getInstance().getContents(DataFlavor.stringFlavor);
+                        if (StringUtils.isEmpty(content)) {
+                            return;
+                        }
+                        content = content.replaceAll("\n", "\\\\n").replaceAll("\r", "\\\\r");
+                        getCefBrowser().executeJavaScript("jsAddTime()", getCefBrowser().getURL(), 0);
+                        getCefBrowser().executeJavaScript("jsPaste('" + content + "')", getCefBrowser().getURL(), 0);
+                    }
+
+                    @Override
+                    public boolean isPastePossible(@NotNull DataContext dataContext) {
+                        return PropertiesComponent.getInstance().getBoolean(PluginConstant.editorTextOperationKey, true);
+                    }
+
+                    @Override
+                    public boolean isPasteEnabled(@NotNull DataContext dataContext) {
+                        return PropertiesComponent.getInstance().getBoolean(PluginConstant.editorTextOperationKey, true);
+                    }
+                };
+            }
+            return null;
+        }
     }
 }

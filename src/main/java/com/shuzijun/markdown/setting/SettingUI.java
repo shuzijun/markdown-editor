@@ -31,6 +31,7 @@ public class SettingUI {
     private JTextField assetsPath;
     private JComboBox assetsName;
     private JCheckBox fixToolbar;
+    private JCheckBox textOperationCheckBox;
 
     public SettingUI() {
         templatePathField.setText(PluginConstant.TEMPLATE_PATH);
@@ -59,6 +60,7 @@ public class SettingUI {
         assetsPath.setText(PropertiesComponent.getInstance().getValue(PluginConstant.editorAssetsPathKey,"assets"));
         assetsName.setSelectedItem(PropertiesComponent.getInstance().getValue(PluginConstant.editorAssetsNameAutoKey,"Rename"));
         fixToolbar.setSelected(PropertiesComponent.getInstance().getBoolean(PluginConstant.editorFixToolbarKey,true));
+        textOperationCheckBox.setSelected(PropertiesComponent.getInstance().getBoolean(PluginConstant.editorTextOperationKey,true));
     }
 
     public JPanel getContentPane() {
@@ -69,7 +71,8 @@ public class SettingUI {
         return !PropertiesComponent.getInstance().getValue(PluginConstant.editorPolicyKey,FileEditorPolicy.PLACE_AFTER_DEFAULT_EDITOR.name()).equals(editorPolicyBox.getSelectedItem())
                 || !PropertiesComponent.getInstance().getValue(PluginConstant.editorAssetsPathKey,"assets").equals(assetsPath.getText())
                 || !PropertiesComponent.getInstance().getValue(PluginConstant.editorAssetsNameAutoKey,"Rename").equals(assetsName.getSelectedItem())
-                || !(PropertiesComponent.getInstance().getBoolean(PluginConstant.editorFixToolbarKey,true) == fixToolbar.isSelected());
+                || !(PropertiesComponent.getInstance().getBoolean(PluginConstant.editorFixToolbarKey,true) == fixToolbar.isSelected())
+                || !(PropertiesComponent.getInstance().getBoolean(PluginConstant.editorTextOperationKey,true) == textOperationCheckBox.isSelected());
     }
 
     public void apply() {
@@ -77,6 +80,7 @@ public class SettingUI {
         PropertiesComponent.getInstance().setValue(PluginConstant.editorAssetsPathKey,assetsPath.getText());
         PropertiesComponent.getInstance().setValue(PluginConstant.editorAssetsNameAutoKey,assetsName.getSelectedItem().toString());
         PropertiesComponent.getInstance().setValue(PluginConstant.editorFixToolbarKey,fixToolbar.isSelected(),true);
+        PropertiesComponent.getInstance().setValue(PluginConstant.editorTextOperationKey,textOperationCheckBox.isSelected(),true);
     }
 
     public void reset() {
