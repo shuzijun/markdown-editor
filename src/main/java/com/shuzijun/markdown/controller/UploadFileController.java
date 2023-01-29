@@ -95,7 +95,7 @@ public class UploadFileController extends BaseController {
     public UploadFileDialogWrapper.FileSetting getFileSetting(Project project, File markdownFile, String filename) {
         AtomicReference<UploadFileDialogWrapper.FileSetting> atomicReference = new AtomicReference<>();
         ApplicationManager.getApplication().invokeAndWait(() -> {
-            String path = markdownFile.getParent() + File.separator + PropertiesComponent.getInstance().getValue(PluginConstant.editorAssetsPathKey, "assets");
+            String path = getFilePath(markdownFile);
             UploadFileDialogWrapper fileDialogWrapper = new UploadFileDialogWrapper(project, path, filename);
             if (fileDialogWrapper.showAndGet()) {
                 atomicReference.set(fileDialogWrapper.getSetting());
@@ -104,5 +104,13 @@ public class UploadFileController extends BaseController {
             }
         });
         return atomicReference.get();
+    }
+
+    private String getFilePath(File markdownFile){
+        if (PropertiesComponent.getInstance().getBoolean(PluginConstant.editorAbsolutePathKey,false)){
+            return PropertiesComponent.getInstance().getValue(PluginConstant.editorAssetsPathKey, "assets");
+        } else {
+            return markdownFile.getParent() + File.separator + PropertiesComponent.getInstance().getValue(PluginConstant.editorAssetsPathKey, "assets");
+        }
     }
 }

@@ -72,6 +72,20 @@
         vditor.vditor.toolbar.elements.info.querySelectorAll('button')[0].onclick = function () {
             vditor.vditor.tip.show(document.getElementById("editorInfo").innerHTML, 0);
         };
+        document.addEventListener('mousedown', (event) => {
+            if (event.button === 2) {
+                if (window.getSelection().isCollapsed) {
+                    document.onselectstart =function(){
+                        return false;
+                    }
+                    setTimeout(() => {
+                        document.onselectstart =function(){
+                            return true;
+                        }
+                    }, 0);
+                }
+            }
+        });
         /*const contentMenuStyle = document.getElementById("contentMenu").style;
         const notepad = document.getElementsByClassName("vditor-content")[0];
         notepad.addEventListener('contextmenu', function(e) {
