@@ -318,9 +318,11 @@ interface ITips {
 
 interface II18n {
     en_US: ITips;
+    fr_FR: ITips;
     ja_JP: ITips;
     ko_KR: ITips;
     ru_RU: ITips;
+    sv_SE: ITips;
     zh_CN: ITips;
     zh_TW: ITips;
 }
