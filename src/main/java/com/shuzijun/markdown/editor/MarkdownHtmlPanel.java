@@ -1,6 +1,5 @@
 package com.shuzijun.markdown.editor;
 
-import com.alibaba.fastjson.JSONObject;
 import com.intellij.CommonBundle;
 import com.intellij.ide.*;
 import com.intellij.ide.actions.searcheverywhere.SearchEverywhereManager;
@@ -205,6 +204,7 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
             @Override
             public void onBeforeContextMenu(CefBrowser browser, CefFrame frame, CefContextMenuParams params, CefMenuModel model) {
                 if (isFileEditor) {
+                    getCefBrowser().executeJavaScript("jsAddBlur()", getCefBrowser().getURL(), 0);
                     model.clear();
                     ActionGroup anAction = (ActionGroup) ActionManager.getInstance().getAction("EditorPopupMenu");
                     ActionPopupMenu actionPopupMenu = ActionManager.getInstance().createActionPopupMenu(ActionPlaces.EDITOR_POPUP, anAction);
@@ -302,7 +302,11 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
         String paste = "function jsPaste(value){\n" +
                 "        vditor.updateValue(value);\n" +
                 "    }\n";
-        return savaTime + copy + cut + paste;
+
+        String blur = "function jsAddBlur(){\n" +
+                "        vditor.vditor.ir.element.addEventListener('blur',(event) => {event.stopImmediatePropagation();}, {capture: true,once: true});\n" +
+                "    }\n";
+        return savaTime + copy + cut + paste + blur;
     }
 
     public void browserFind(String txt, boolean forward) {

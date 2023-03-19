@@ -2,17 +2,39 @@
 
 # Markdown Editor Changelog
 
+## 2.0.5
+
+### Added
+
+- Support Absolute Path。[#84](https://github.com/shuzijun/markdown-editor/issues/84)
+
+### Changed
+
+- Optimize text action menu.
+- Upgrade vditor to `3.9.1`
+
+### Fixed
+
+- fix [#62](https://github.com/shuzijun/markdown-editor/issues/62)
+
+### Removed
+
 ## 2.0.4
 
 ### Added
+
 - Open file wait for animation
+
 ### Changed
 
 ### Fixed
+
 - fix [#81](https://github.com/shuzijun/markdown-editor/issues/81)
 - fix [#72](https://github.com/shuzijun/markdown-editor/issues/72)
 - fix [#65](https://github.com/shuzijun/markdown-editor/issues/65)
+
 ### Removed
+
 - Remove the shortcut key to close the search box by default
 
 ## 2.0.2
@@ -22,6 +44,7 @@
 ### Changed
 
 - fix [#68](https://github.com/shuzijun/markdown-editor/issues/68)
+
 ### Fixed
 
 ### Removed
@@ -33,6 +56,7 @@
 ### Changed
 
 - Upgrade vditor to `3.8.17`
+
 ### Fixed
 
 ### Removed
