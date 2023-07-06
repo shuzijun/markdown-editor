@@ -12,6 +12,7 @@ export declare abstract class Constants {
     static readonly CDN: string;
     static readonly MARKDOWN_OPTIONS: {
         autoSpace: boolean;
+        gfmAutoLink: boolean;
         codeBlockPreview: boolean;
         fixTermTypo: boolean;
         footnotes: boolean;
