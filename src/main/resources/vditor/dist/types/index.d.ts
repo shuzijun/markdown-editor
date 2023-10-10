@@ -445,6 +445,8 @@ interface IMath {
     macros?: object;
     /** 数学公式渲染引擎。默认值: 'KaTeX' */
     engine?: "KaTeX" | "MathJax";
+    /** 数学公式渲染引擎为 MathJax 时传入的参数 */
+    mathJaxOptions?: any;
 }
 
 /** @link https://ld246.com/article/1549638745630#options-preview-markdown */
@@ -772,7 +774,8 @@ interface IVditor {
         element?: HTMLElement,
     };
     preview?: {
-        element: HTMLElement
+        element: HTMLElement,
+        previewElement: HTMLElement,
         render(vditor: IVditor, value?: string): void,
     };
     counter?: {
