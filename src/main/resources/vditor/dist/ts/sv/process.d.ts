@@ -1,4 +1,3 @@
-/// <reference types="./types" />
 export declare const processPaste: (vditor: IVditor, text: string) => void;
 export declare const getSideByType: (spanNode: Node, type: string, isPrevious?: boolean) => false | Element;
 export declare const processSpinVditorSVDOM: (html: string, vditor: IVditor) => string;

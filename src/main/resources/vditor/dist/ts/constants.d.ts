@@ -8,7 +8,7 @@ export declare abstract class Constants {
     static readonly CLASS_MENU_DISABLED: string;
     static readonly EDIT_TOOLBARS: string[];
     static readonly CODE_THEME: string[];
-    static readonly CODE_LANGUAGES: string[];
+    static readonly ALIAS_CODE_LANGUAGES: string[];
     static readonly CDN: string;
     static readonly MARKDOWN_OPTIONS: {
         autoSpace: boolean;

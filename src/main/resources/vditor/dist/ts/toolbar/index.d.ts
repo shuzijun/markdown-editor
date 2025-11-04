@@ -5,5 +5,6 @@ export declare class Toolbar {
     };
     element: HTMLElement;
     constructor(vditor: IVditor);
+    updateConfig(vditor: IVditor, options: IToolbarConfig): void;
     private genItem;
 }

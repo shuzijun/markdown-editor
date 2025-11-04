@@ -1,4 +1,3 @@
-/// <reference types="./types" />
 export declare const focusEvent: (vditor: IVditor, editorElement: HTMLElement) => void;
 export declare const dblclickEvent: (vditor: IVditor, editorElement: HTMLElement) => void;
 export declare const blurEvent: (vditor: IVditor, editorElement: HTMLElement) => void;

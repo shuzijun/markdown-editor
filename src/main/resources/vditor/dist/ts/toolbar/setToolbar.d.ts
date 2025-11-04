@@ -1,4 +1,3 @@
-/// <reference types="./types" />
 export declare const removeCurrentToolbar: (toolbar: {
     [key: string]: HTMLElement;
 }, names: string[]) => void;

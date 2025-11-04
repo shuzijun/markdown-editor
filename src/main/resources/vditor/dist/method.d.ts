@@ -1,25 +1,26 @@
-/// <reference types="./types" />
 import * as adapterRender from "./ts/markdown/adapterRender";
 declare class Vditor {
     /** 点击图片放大 */
     static adapterRender: typeof adapterRender;
     /** 点击图片放大 */
-    static previewImage: (oldImgElement: HTMLImageElement, lang?: "en_US" | "fr_FR" | "pt_BR" | "ja_JP" | "ko_KR" | "ru_RU" | "sv_SE" | "zh_CN" | "zh_TW", theme?: string) => void;
+    static previewImage: (oldImgElement: HTMLImageElement, lang?: keyof II18n, theme?: string) => void;
     /** 为 element 中的代码块添加复制按钮 */
-    static codeRender: (element: HTMLElement) => void;
+    static codeRender: (element: HTMLElement, option?: IHljs) => void;
     /** 对 graphviz 进行渲染 */
     static graphvizRender: (element: HTMLElement, cdn?: string) => void;
     /** 为 element 中的代码块进行高亮渲染 */
     static highlightRender: (hljsOption?: IHljs, element?: HTMLElement | Document, cdn?: string) => void;
     /** 对数学公式进行渲染 */
-    static mathRender: (element: HTMLElement, options?: {
+    static mathRender: (element?: HTMLElement | Document, options?: {
         cdn?: string;
         math?: IMath;
     }) => void;
     /** 流程图/时序图/甘特图渲染 */
-    static mermaidRender: (element: HTMLElement, cdn: string, theme: string) => void;
-    /** 支持markdown的思维导图 */
-    static markmapRender: (element: HTMLElement, cdn: string, theme: string) => void;
+    static mermaidRender: (element: HTMLElement | Document, cdn: string, theme: string) => void;
+    /** 化学物质结构渲染 */
+    static SMILESRender: (element: HTMLElement | Document, cdn: string, theme: string) => void;
+    /** 支持 markdown 的思维导图 */
+    static markmapRender: (element?: HTMLElement | Document, cdn?: string) => void;
     /** flowchart.js 渲染 */
     static flowchartRender: (element: HTMLElement, cdn?: string) => void;
     /** 图表渲染 */
@@ -35,7 +36,7 @@ declare class Vditor {
     /** 为[特定链接](https://github.com/Vanessa219/vditor/issues/7)分别渲染为视频、音频、嵌入的 iframe */
     static mediaRender: (element: HTMLElement) => void;
     /** 对选中的文字进行阅读 */
-    static speechRender: (element: HTMLElement, lang?: "en_US" | "fr_FR" | "pt_BR" | "ja_JP" | "ko_KR" | "ru_RU" | "sv_SE" | "zh_CN" | "zh_TW") => void;
+    static speechRender: (element: HTMLElement, lang?: keyof II18n) => void;
     /** 对图片进行懒加载 */
     static lazyLoadImageRender: (element?: HTMLElement | Document) => boolean;
     /** Markdown 文本转换为 HTML，该方法需使用[异步编程](https://ld246.com/article/1546828434083?r=Vaness) */

@@ -1,4 +1,3 @@
-/// <reference types="./types" />
 export declare const renderToc: (vditor: IVditor) => void;
 export declare const clickToc: (event: MouseEvent & {
     target: HTMLElement;

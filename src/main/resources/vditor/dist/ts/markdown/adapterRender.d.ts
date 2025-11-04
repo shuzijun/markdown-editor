@@ -1,15 +1,19 @@
 export declare const mathRenderAdapter: {
-    getCode: (mathElement: Element) => string;
-    getElements: (element: HTMLElement) => NodeListOf<Element>;
+    getCode: (el: Element) => string;
+    getElements: (element: HTMLElement | Document) => NodeListOf<Element>;
+};
+export declare const SMILESRenderAdapter: {
+    getCode: (el: Element) => string;
+    getElements: (element: HTMLElement | Document) => NodeListOf<Element>;
 };
 export declare const mermaidRenderAdapter: {
     /** 不仅要返回code，并且需要将 code 设置为 el 的 innerHTML */
     getCode: (el: Element) => string;
-    getElements: (element: HTMLElement) => NodeListOf<Element>;
+    getElements: (element: HTMLElement | Document) => NodeListOf<Element>;
 };
 export declare const markmapRenderAdapter: {
     getCode: (el: Element) => string;
-    getElements: (element: HTMLElement) => NodeListOf<Element>;
+    getElements: (element: HTMLElement | Document) => NodeListOf<Element>;
 };
 export declare const mindmapRenderAdapter: {
     getCode: (el: Element) => string;
