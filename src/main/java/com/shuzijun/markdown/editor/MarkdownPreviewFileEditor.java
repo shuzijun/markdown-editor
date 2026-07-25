@@ -49,10 +49,6 @@ import org.jetbrains.ide.BuiltInServerManager;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileInputStream;
@@ -82,7 +78,7 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
     private final JPanel myHtmlPanelWrapper;
     private final MarkdownHtmlPanel myPanel;
 
-    private final JBPanel toolbarPanel = new JBPanel(new FlowLayout(FlowLayout.LEFT));
+    private final JBPanel toolbarPanel = new JBPanel(new FlowLayout(FlowLayout.LEFT, 4, 4));
     private final JBTextField searchField = new JBTextField();
 
     private final Url servicePath = BuiltInServerManager.getInstance().addAuthToken(Urls.parseEncoded("http://localhost:" + BuiltInServerManager.getInstance().getPort() + PreviewStaticServer.PREFIX));
@@ -103,41 +99,26 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
             myHtmlPanelWrapper.add(tempPanel.getComponent(), BorderLayout.CENTER);
 
             MarkdownHtmlPanel finalTempPanel = tempPanel;
-            searchField.setPreferredSize(new Dimension(200, 25));
-            searchField.addKeyListener(new KeyAdapter() {
-                @Override
-                public void keyPressed(KeyEvent e) {
-                    if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                        finalTempPanel.browserFind(searchField.getText(), true);
-                    }
-                }
-            });
+            toolbarPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, JBColor.border()));
+            searchField.setPreferredSize(new Dimension(260, 28));
+            searchField.putClientProperty("JTextField.placeholderText", "Search in Markdown");
+            searchField.addActionListener(event -> finalTempPanel.browserFind(searchField.getText(), true));
             searchField.getDocument().addDocumentListener(new DocumentAdapter() {
                 @Override
                 protected void textChanged(@NotNull DocumentEvent e) {
                     finalTempPanel.browserFind(searchField.getText(), true);
                 }
             });
-            JBLabel previousLabel = new JBLabel("<", JLabel.CENTER);
-            previousLabel.setPreferredSize(new Dimension(25, 25));
-            previousLabel.addMouseListener(new LabelMouseListener(previousLabel, false));
-            JBLabel nextLabel = new JBLabel(">", JLabel.CENTER);
-            nextLabel.setPreferredSize(new Dimension(25, 25));
-            nextLabel.addMouseListener(new LabelMouseListener(nextLabel, true));
-            JBLabel close = new JBLabel("x", JLabel.CENTER);
-            close.setPreferredSize(new Dimension(25, 25));
-            close.addMouseListener(new LabelMouseListener(close, false) {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    searchField.setText("");
-                    toolbarPanel.setVisible(false);
-                }
+            JButton previousButton = createSearchButton("Previous", "Previous match", () -> finalTempPanel.browserFind(searchField.getText(), false));
+            JButton nextButton = createSearchButton("Next", "Next match", () -> finalTempPanel.browserFind(searchField.getText(), true));
+            JButton closeButton = createSearchButton("Close", "Close search", () -> {
+                searchField.setText("");
+                toolbarPanel.setVisible(false);
             });
-            toolbarPanel.add(new JBLabel("find:", JLabel.CENTER));
             toolbarPanel.add(searchField);
-            toolbarPanel.add(previousLabel);
-            toolbarPanel.add(nextLabel);
-            toolbarPanel.add(close);
+            toolbarPanel.add(previousButton);
+            toolbarPanel.add(nextButton);
+            toolbarPanel.add(closeButton);
             AnAction searchAction = ActionManager.getInstance().getAction("markdown.search");
             AnAction searchVisibleAction = ActionManager.getInstance().getAction("markdown.searchVisible");
             ActionToolbar actionToolbar = ActionManager.getInstance().createActionToolbar(PluginConstant.EDITOR_TOOLBAR, new DefaultActionGroup(searchAction, searchVisibleAction), true);
@@ -293,6 +274,7 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
             sb.append(darkTheme ? ".vditor--dark" : ".vditor").append("{--panel-background-color:").append(toHexColor(defaultBackground))
                     .append(";--textarea-background-color:").append(toHexColor(defaultBackground)).append(";");
             sb.append("--toolbar-background-color:").append(toHexColor(JBColor.background())).append(";");
+            sb.append("--border-color:").append(toHexColor(JBColor.border())).append(";");
             sb.append("}");
             sb.append("::-webkit-scrollbar-track {background-color:").append(toHexColor(defaultBackground)).append(";}");
             sb.append("::-webkit-scrollbar-thumb {background-color:").append(toHexColor(scrollbarThumbColor)).append(";}");
@@ -305,6 +287,26 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
             if (text != null) {
                 sb.append(".vditor-reset table {color:").append(toHexColor(text)).append(";}");
             }
+            Color linkColor = UIManager.getColor("Link.activeForeground");
+            if (linkColor == null) {
+                linkColor = JBColor.BLUE;
+            }
+            Color borderColor = JBColor.border();
+            Color codeBackground = darkTheme ? new Color(255, 255, 255, 18) : new Color(0, 0, 0, 8);
+            Color quoteBackground = darkTheme ? new Color(255, 255, 255, 12) : new Color(0, 0, 0, 6);
+            sb.append(".vditor-reset a{color:").append(toHexColor(linkColor)).append(";}");
+            sb.append(".vditor-reset h1,.vditor-reset h2,.vditor-reset h3,.vditor-reset h4,.vditor-reset h5,.vditor-reset h6{");
+            if (text != null) {
+                sb.append("color:").append(toHexColor(text)).append(";");
+            }
+            sb.append("border-bottom-color:").append(toHexColor(borderColor)).append(";}");
+            sb.append(".vditor-reset blockquote{background-color:").append(toHexColor(quoteBackground))
+                    .append(";border-left-color:").append(toHexColor(linkColor)).append(";}");
+            sb.append(".vditor-reset code:not(.hljs){background-color:").append(toHexColor(codeBackground))
+                    .append(";border-color:").append(toHexColor(borderColor)).append(";}");
+            sb.append(".vditor-reset pre{background-color:").append(toHexColor(codeBackground))
+                    .append(";border-color:").append(toHexColor(borderColor)).append(";}");
+            sb.append(".vditor-reset table th,.vditor-reset table td{border-color:").append(toHexColor(borderColor)).append(";}");
             sb.append(isTag ? "</style>" : "");
             LOG.info("markdown style: " + sb + " ; Dark theme: " + darkTheme);
             return sb.toString();
@@ -337,33 +339,12 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
         }
     }
 
-    private class LabelMouseListener extends MouseAdapter {
-
-        private JBLabel label;
-
-        private boolean forward;
-
-        private Color color;
-
-        public LabelMouseListener(JBLabel label, boolean forward) {
-            this.label = label;
-            this.forward = forward;
-        }
-
-        @Override
-        public void mouseClicked(MouseEvent e) {
-            myPanel.browserFind(searchField.getText(), forward);
-        }
-
-        @Override
-        public void mousePressed(MouseEvent e) {
-            color = label.getForeground();
-            label.setForeground(Color.BLUE);
-        }
-
-        @Override
-        public void mouseReleased(MouseEvent e) {
-            label.setForeground(color);
-        }
+    private JButton createSearchButton(String text, String tooltip, Runnable action) {
+        JButton button = new JButton(text);
+        button.setToolTipText(tooltip);
+        button.setFocusable(false);
+        button.setMargin(new Insets(2, 8, 2, 8));
+        button.addActionListener(event -> action.run());
+        return button;
     }
 }
