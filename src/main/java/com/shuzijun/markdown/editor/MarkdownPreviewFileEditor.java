@@ -4,6 +4,7 @@ import com.google.common.escape.Escaper;
 import com.google.common.net.PercentEscaper;
 import com.google.common.net.UrlEscapers;
 import com.intellij.ide.structureView.StructureViewBuilder;
+import com.intellij.lang.LanguageStructureViewBuilder;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -23,6 +24,8 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
@@ -214,7 +217,8 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
     public StructureViewBuilder getStructureViewBuilder() {
         VirtualFile file = FileDocumentManager.getInstance().getFile(myDocument);
         if (file == null || !file.isValid()) return null;
-        return StructureViewBuilder.getProvider().getStructureViewBuilder(file.getFileType(), file, myProject);
+        PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
+        return psiFile == null ? null : LanguageStructureViewBuilder.getInstance().getStructureViewBuilder(psiFile);
     }
 
     @Override
