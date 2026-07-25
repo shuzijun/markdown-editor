@@ -2,6 +2,18 @@
 
 # Markdown Editor Changelog
 
+## 2.0.6
+
+### Added
+
+### Changed
+
+### Fixed
+
+- Fix plugin startup failure in IntelliJ IDEA 2026.2 caused by a missing JCEF module dependency. [#139](https://github.com/shuzijun/markdown-editor/issues/139)
+
+### Removed
+
 ## 2.0.5
 
 ### Added

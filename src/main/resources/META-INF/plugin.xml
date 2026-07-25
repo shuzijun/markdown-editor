@@ -32,6 +32,7 @@
     <!-- please see https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html
          on how to target different products -->
     <depends>com.intellij.modules.lang</depends>
+    <depends optional="true">com.intellij.modules.jcef</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <!--<fileType name="Markdown Editor" extensions="md;markdown" language="Markdown Editor"
@@ -42,8 +43,8 @@
                                  instance="com.shuzijun.markdown.setting.SettingConfigurable"/>
         <errorHandler implementation="com.shuzijun.markdown.listener.ErrorReportHandler"/>
         <postStartupActivity implementation="com.shuzijun.markdown.listener.SupportCheck"/>
-        <applicationService serviceInterface="com.shuzijun.markdown.controller.FileApplicationService"
-                            serviceImplementation="com.shuzijun.markdown.controller.FileApplicationService" />
+        <applicationService
+                serviceImplementation="com.shuzijun.markdown.controller.FileApplicationService" />
     </extensions>
 
     <actions>
