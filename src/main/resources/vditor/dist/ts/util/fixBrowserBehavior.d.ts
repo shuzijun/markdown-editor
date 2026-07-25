@@ -1,4 +1,3 @@
-/// <reference types="./types" />
 export declare const fixGSKeyBackspace: (event: KeyboardEvent, vditor: IVditor, startContainer: Node) => boolean;
 export declare const fixCJKPosition: (range: Range, vditor: IVditor, event: KeyboardEvent) => void;
 export declare const fixCursorDownInlineMath: (range: Range, key: string) => void;

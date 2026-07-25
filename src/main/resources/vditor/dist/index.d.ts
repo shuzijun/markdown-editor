@@ -4,11 +4,14 @@ import VditorMethod from "./method";
 declare class Vditor extends VditorMethod {
     readonly version: string;
     vditor: IVditor;
+    private isDestroyed;
     /**
      * @param id 要挂载 Vditor 的元素或者元素 ID。
      * @param options Vditor 参数
      */
     constructor(id: string | HTMLElement, options?: IOptions);
+    private showErrorTip;
+    updateToolbarConfig(options: IToolbarConfig): void;
     /** 设置主题 */
     setTheme(theme: "dark" | "classic", contentTheme?: string, codeTheme?: string, contentThemePath?: string): void;
     /** 获取 Markdown 内容 */
@@ -56,8 +59,12 @@ declare class Vditor extends VditorMethod {
     updateValue(value: string): void;
     /** 在焦点处插入内容，并默认进行 Markdown 渲染 */
     insertValue(value: string, render?: boolean): void;
+    /** 在焦点处插入 Markdown */
+    insertMD(md: string): void;
     /** 设置编辑器内容 */
     setValue(markdown: string, clearStack?: boolean): void;
+    /** 空块 */
+    insertEmptyBlock(position: InsertPosition): void;
     /** 清空 undo & redo 栈 */
     clearStack(): void;
     /** 销毁编辑器 */

@@ -1,4 +1,3 @@
-/// <reference types="./types" />
 declare global {
     interface Window {
         vditorSpeechRange: Range;

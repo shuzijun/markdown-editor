@@ -1,4 +1,3 @@
-/// <reference types="./types" />
 declare class Upload {
     element: HTMLElement;
     isUploading: boolean;

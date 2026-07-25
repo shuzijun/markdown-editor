@@ -1,1 +1,1 @@
-export declare const markmapRender: (element: HTMLElement, cdn: string, theme: string) => void;
+export declare const markmapRender: (element?: (HTMLElement | Document), cdn?: string) => void;

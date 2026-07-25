@@ -1,4 +1,3 @@
-/// <reference types="./types" />
 export declare const previoueIsEmptyA: (node: Node) => false | HTMLElement;
 export declare const nextIsCode: (range: Range) => boolean;
 export declare const getNextHTML: (node: Node) => string;
