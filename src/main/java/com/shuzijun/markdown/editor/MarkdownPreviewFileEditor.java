@@ -14,7 +14,6 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.colors.EditorColorsListener;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.colors.EditorColorsScheme;
-import com.intellij.openapi.editor.colors.impl.EditorColorsSchemeImpl;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
@@ -29,12 +28,10 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBTextField;
-import com.intellij.ui.components.ScrollBarPainter;
 import com.intellij.util.Url;
 import com.intellij.util.Urls;
 import com.intellij.util.io.URLUtil;
 import com.intellij.util.messages.MessageBusConnection;
-import com.intellij.util.ui.UIUtil;
 import com.shuzijun.markdown.controller.FileApplicationService;
 import com.shuzijun.markdown.controller.PreviewStaticServer;
 import com.shuzijun.markdown.model.PluginConstant;
@@ -160,7 +157,8 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
         settingsConnection.subscribe(EditorColorsManager.TOPIC, new EditorColorsListener() {
             @Override
             public void globalSchemeChange(@Nullable EditorColorsScheme scheme) {
-                myPanel.updateStyle(getStyle(false));
+                EditorColorsScheme currentScheme = scheme == null ? EditorColorsManager.getInstance().getGlobalScheme() : scheme;
+                myPanel.updateStyle(getStyle(false), isDarkTheme(currentScheme.getDefaultBackground()));
             }
         });
 
@@ -216,7 +214,7 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
     public StructureViewBuilder getStructureViewBuilder() {
         VirtualFile file = FileDocumentManager.getInstance().getFile(myDocument);
         if (file == null || !file.isValid()) return null;
-        return StructureViewBuilder.PROVIDER.getStructureViewBuilder(file.getFileType(), file, myProject);
+        return StructureViewBuilder.getProvider().getStructureViewBuilder(file.getFileType(), file, myProject);
     }
 
     @Override
@@ -249,7 +247,7 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
                     .replace("{{serverToken}}", StringUtils.isNotBlank(servicePath.getParameters()) ? servicePath.getParameters().substring(1) : "")
                     .replace("{{filePath}}", URL_FRAGMENT_ESCAPER.escape(myFile.getPath()))
                     .replace("{{Lang}}", PropertiesUtils.getInfo("Lang"))
-                    .replace("{{darcula}}", UIUtil.isUnderDarcula() + "")
+                    .replace("{{darcula}}", isDarkTheme(EditorColorsManager.getInstance().getGlobalScheme().getDefaultBackground()) + "")
                     .replace("{{userTemplate}}", templateFile.exists() + "")
                     .replace("{{projectUrl}}", isPresentableUrl ? URL_FRAGMENT_ESCAPER.escape(myProject.getPresentableUrl()) : "")
                     .replace("{{projectName}}", isPresentableUrl ? "" : URL_FRAGMENT_ESCAPER.escape(myProject.getName()))
@@ -275,20 +273,20 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
 
     private String getStyle(boolean isTag) {
         try {
-            EditorColorsSchemeImpl editorColorsScheme = (EditorColorsSchemeImpl) EditorColorsManager.getInstance().getGlobalScheme();
+            EditorColorsScheme editorColorsScheme = EditorColorsManager.getInstance().getGlobalScheme();
             Color defaultBackground = editorColorsScheme.getDefaultBackground();
 
-            Color scrollbarThumbColor = ScrollBarPainter.THUMB_OPAQUE_BACKGROUND.getDefaultColor();
-            if (editorColorsScheme.getColor(ScrollBarPainter.THUMB_OPAQUE_BACKGROUND) != null) {
-                scrollbarThumbColor = editorColorsScheme.getColor(ScrollBarPainter.THUMB_OPAQUE_BACKGROUND);
-            }
-
             Color text = editorColorsScheme.getDefaultForeground();
+            Color scrollbarThumbColor = UIManager.getColor("ScrollBar.thumb");
+            if (scrollbarThumbColor == null) {
+                scrollbarThumbColor = text == null ? defaultBackground : text;
+            }
             String fontFamily = "font-family:\"" + editorColorsScheme.getEditorFontName() + "\",\"Helvetica Neue\",\"Luxi Sans\",\"DejaVu Sans\"," +
                     "\"Hiragino Sans GB\",\"Microsoft Yahei\",sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Noto Color Emoji\",\"Segoe UI Symbol\"," +
                     "\"Android Emoji\",\"EmojiSymbols\";";
             StringBuilder sb = new StringBuilder(isTag ? "<style id=\"ideaStyle\">" : "");
-            sb.append(UIUtil.isUnderDarcula() ? ".vditor--dark" : ".vditor").append("{--panel-background-color:").append(toHexColor(defaultBackground))
+            boolean darkTheme = isDarkTheme(defaultBackground);
+            sb.append(darkTheme ? ".vditor--dark" : ".vditor").append("{--panel-background-color:").append(toHexColor(defaultBackground))
                     .append(";--textarea-background-color:").append(toHexColor(defaultBackground)).append(";");
             sb.append("--toolbar-background-color:").append(toHexColor(JBColor.background())).append(";");
             sb.append("}");
@@ -304,13 +302,18 @@ public class MarkdownPreviewFileEditor extends UserDataHolderBase implements Fil
                 sb.append(".vditor-reset table {color:").append(toHexColor(text)).append(";}");
             }
             sb.append(isTag ? "</style>" : "");
-            LOG.info("markdown style: " + sb + " ; Darcula: " + UIUtil.isUnderDarcula());
+            LOG.info("markdown style: " + sb + " ; Dark theme: " + darkTheme);
             return sb.toString();
         } catch (Exception e) {
             LOG.info("Failed to create style", e);
             return "";
         }
 
+    }
+
+    private boolean isDarkTheme(Color background) {
+        double luminance = (0.2126 * background.getRed() + 0.7152 * background.getGreen() + 0.0722 * background.getBlue()) / 255;
+        return luminance < 0.5;
     }
 
     private String toHexColor(Color color) {

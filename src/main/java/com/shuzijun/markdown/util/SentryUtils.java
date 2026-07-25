@@ -1,9 +1,8 @@
 package com.shuzijun.markdown.util;
 
-import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.application.ApplicationInfo;
-import com.intellij.openapi.application.impl.ApplicationInfoImpl;
 import com.intellij.openapi.extensions.PluginId;
+import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.shuzijun.markdown.model.PluginConstant;
@@ -25,7 +24,7 @@ public class SentryUtils {
 
         final SentryClient sentry = SentryClientFactory.sentryClient("https://d1fa540b8bd047beb4e0ac3f66ad50f9@o291873.ingest.sentry.io/5875324");
 
-        final ApplicationInfoImpl applicationInfo = (ApplicationInfoImpl) ApplicationInfo.getInstance();
+        final ApplicationInfo applicationInfo = ApplicationInfo.getInstance();
 
         EventBuilderHelper eventBuilder = new EventBuilderHelper() {
             @Override
@@ -59,7 +58,7 @@ public class SentryUtils {
 
 
         context.addTag("javaVersion", SystemInfo.JAVA_RUNTIME_VERSION);
-        context.addTag("pluginVersion",  PluginManagerCore.getPlugin(PluginId.getId(PluginConstant.PLUGIN_ID)).getVersion());
+        context.addTag("pluginVersion", PluginManager.getPlugin(PluginId.getId(PluginConstant.PLUGIN_ID)).getVersion());
         if(error == null){
             sentry.sendMessage(description);
         }else {

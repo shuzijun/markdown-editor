@@ -1,7 +1,7 @@
 package com.shuzijun.markdown.controller;
 
 import com.google.common.net.UrlEscapers;
-import com.intellij.ide.plugins.PluginManagerCore;
+import com.intellij.ide.plugins.PluginManager;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
@@ -71,10 +71,10 @@ public class ExportFileController extends BaseController {
                 }
                 if ("html".equals(type)) {
                     if (themeCdnData != null && themeCdnData.getHttpDataType() == InterfaceHttpData.HttpDataType.Attribute) {
-                        value = value.replaceAll(((Attribute) themeCdnData).getValue(), PluginConstant.CDN + PluginManagerCore.getPlugin(PluginId.getId(PluginConstant.PLUGIN_ID)).getVersion() + "/src/main/resources/vditor/dist/css/content-theme");
+                        value = value.replaceAll(((Attribute) themeCdnData).getValue(), PluginConstant.CDN + PluginManager.getPlugin(PluginId.getId(PluginConstant.PLUGIN_ID)).getVersion() + "/src/main/resources/vditor/dist/css/content-theme");
                     }
                     if (cdnData != null && cdnData.getHttpDataType() == InterfaceHttpData.HttpDataType.Attribute) {
-                        value = value.replaceAll(((Attribute) cdnData).getValue(), PluginConstant.CDN + PluginManagerCore.getPlugin(PluginId.getId(PluginConstant.PLUGIN_ID)).getVersion() + "/src/main/resources/vditor");
+                        value = value.replaceAll(((Attribute) cdnData).getValue(), PluginConstant.CDN + PluginManager.getPlugin(PluginId.getId(PluginConstant.PLUGIN_ID)).getVersion() + "/src/main/resources/vditor");
                     }
                     FileUtils.saveFile(new File(fileSetting.filePath()), value);
                     FileUtils.refreshProjectDirectory(project, fileSetting.filePath());

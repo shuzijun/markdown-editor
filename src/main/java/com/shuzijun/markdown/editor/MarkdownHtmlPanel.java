@@ -251,7 +251,13 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
         SearchEverywhereManager manager = SearchEverywhereManager.getInstance(project);
         if (!manager.isShown()) {
             ApplicationManager.getApplication().invokeLater(() -> {
-                AnActionEvent anActionEvent = AnActionEvent.createFromDataContext(ActionPlaces.UNKNOWN, null, DataManager.getInstance().getDataContext(getComponent()));
+                AnActionEvent anActionEvent = AnActionEvent.createEvent(
+                        DataManager.getInstance().getDataContext(getComponent()),
+                        new Presentation(),
+                        ActionPlaces.UNKNOWN,
+                        ActionUiKind.NONE,
+                        null
+                );
                 manager.show(SearchEverywhereManagerImpl.ALL_CONTRIBUTORS_GROUP_ID, searchText, anActionEvent);
             });
         }
@@ -277,8 +283,8 @@ public class MarkdownHtmlPanel extends JCEFHtmlPanel {
         return sb.toString();
     }
 
-    public void updateStyle(String style) {
-        getCefBrowser().executeJavaScript("updateStyle('" + style + "'," + UIUtil.isUnderDarcula() + ");", getCefBrowser().getURL(), 0);
+    public void updateStyle(String style, boolean darkTheme) {
+        getCefBrowser().executeJavaScript("updateStyle('" + style + "'," + darkTheme + ");", getCefBrowser().getURL(), 0);
     }
 
     public void updateHeight(int width,int height) {
