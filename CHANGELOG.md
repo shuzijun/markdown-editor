@@ -2,6 +2,18 @@
 
 # Markdown Editor Changelog
 
+## 2.0.7
+
+### Added
+
+### Changed
+
+### Fixed
+
+- Fixed unexpected browser navigation to PlantUML render URLs after opening Markdown files that contain PlantUML diagrams.
+
+### Removed
+
 ## 2.0.6
 
 ### Added
