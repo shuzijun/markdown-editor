@@ -1,5 +1,5 @@
 /*!
- * Vditor v3.11.2 - A markdown editor written in TypeScript.
+ * Vditor v3.11.3 - A markdown editor written in TypeScript.
  *
  * MIT License
  *
@@ -37,7 +37,7 @@
 return /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 173:
+/***/ 132:
 /***/ ((module) => {
 
 /**
@@ -2196,6 +2196,8 @@ var mindmapRender = __webpack_require__(194);
 var outlineRender = __webpack_require__(436);
 // EXTERNAL MODULE: ./src/ts/markdown/plantumlRender.ts
 var plantumlRender = __webpack_require__(229);
+// EXTERNAL MODULE: ./src/ts/markdown/wavedromRender.ts
+var wavedromRender = __webpack_require__(497);
 // EXTERNAL MODULE: ./src/ts/constants.ts
 var constants = __webpack_require__(145);
 // EXTERNAL MODULE: ./src/ts/ui/setContentTheme.ts
@@ -2226,6 +2228,8 @@ var anchorRender = function (type) {
     };
 };
 
+// EXTERNAL MODULE: ./src/ts/markdown/imageCaptionRender.ts
+var imageCaptionRender = __webpack_require__(161);
 // EXTERNAL MODULE: ./src/ts/markdown/setLute.ts
 var setLute = __webpack_require__(214);
 // EXTERNAL MODULE: ./src/ts/util/selection.ts
@@ -2389,6 +2393,8 @@ var __generator = (undefined && undefined.__generator) || function (thisArg, bod
 
 
 
+
+
 var mergeOptions = function (options) {
     var _a;
     var defaultOption = {
@@ -2427,6 +2433,7 @@ var md2html = function (mdText, options) {
     return (0,addScript/* addScript */.G)("".concat(mergedOptions.cdn, "/dist/js/lute/lute.min.js"), "vditorLuteScript").then(function () {
         var lute = (0,setLute/* setLute */.X)({
             autoSpace: mergedOptions.markdown.autoSpace,
+            callout: mergedOptions.markdown.callout,
             gfmAutoLink: mergedOptions.markdown.gfmAutoLink,
             codeBlockPreview: mergedOptions.markdown.codeBlockPreview,
             emojiSite: mergedOptions.emojiPath,
@@ -2443,6 +2450,8 @@ var md2html = function (mdText, options) {
             mathBlockPreview: mergedOptions.markdown.mathBlockPreview,
             paragraphBeginningSpace: mergedOptions.markdown.paragraphBeginningSpace,
             sanitize: mergedOptions.markdown.sanitize,
+            sub: mergedOptions.markdown.sub,
+            sup: mergedOptions.markdown.sup,
             toc: mergedOptions.markdown.toc,
         });
         if (options === null || options === void 0 ? void 0 : options.renderers) {
@@ -2453,7 +2462,7 @@ var md2html = function (mdText, options) {
             });
         }
         lute.SetHeadingID(true);
-        return lute.Md2HTML(mdText);
+        return (0,imageCaptionRender/* renderImageCaptionHTML */.V)(lute.Md2HTML(mdText), mergedOptions.markdown.imageCaption);
     });
 };
 var previewRender = function (previewElement, markdown, options) { return __awaiter(void 0, void 0, void 0, function () {
@@ -2511,6 +2520,7 @@ var previewRender = function (previewElement, markdown, options) { return __awai
                 (0,markmapRender/* markmapRender */.K)(previewElement, mergedOptions.cdn);
                 (0,flowchartRender/* flowchartRender */.P)(previewElement, mergedOptions.cdn);
                 (0,graphvizRender/* graphvizRender */.v)(previewElement, mergedOptions.cdn);
+                (0,wavedromRender/* wavedromRender */.F)(previewElement, mergedOptions.cdn);
                 (0,chartRender/* chartRender */.p)(previewElement, mergedOptions.cdn, mergedOptions.mode);
                 (0,mindmapRender/* mindmapRender */.P)(previewElement, mergedOptions.cdn, mergedOptions.mode);
                 (0,plantumlRender/* plantumlRender */.B)(previewElement, mergedOptions.cdn);
@@ -2571,6 +2581,7 @@ var setCodeTheme = __webpack_require__(580);
 
 
 
+
 var Vditor = /** @class */ (function () {
     function Vditor() {
     }
@@ -2582,6 +2593,8 @@ var Vditor = /** @class */ (function () {
     Vditor.codeRender = codeRender/* codeRender */.O;
     /** 对 graphviz 进行渲染 */
     Vditor.graphvizRender = graphvizRender/* graphvizRender */.v;
+    /** 对数字波形图进行渲染 */
+    Vditor.wavedromRender = wavedromRender/* wavedromRender */.F;
     /** 为 element 中的代码块进行高亮渲染 */
     Vditor.highlightRender = highlightRender/* highlightRender */.s;
     /** 对数学公式进行渲染 */
@@ -2633,7 +2646,7 @@ var Vditor = /** @class */ (function () {
 /* harmony export */   "H": () => (/* binding */ _VDITOR_VERSION),
 /* harmony export */   "g": () => (/* binding */ Constants)
 /* harmony export */ });
-var _VDITOR_VERSION = "3.11.2";
+var _VDITOR_VERSION = "3.11.3";
 
 var Constants = /** @class */ (function () {
     function Constants() {
@@ -2677,17 +2690,19 @@ var Constants = /** @class */ (function () {
         "stackoverflow-light", "tokyo-night-light", "vs", "xcode", "default"];
     Constants.ALIAS_CODE_LANGUAGES = [
         // 自定义
-        "abc", "plantuml", "mermaid", "flowchart", "echarts", "mindmap", "graphviz", "math", "markmap", "smiles",
+        "abc", "plantuml", "mermaid", "flowchart", "echarts", "mindmap", "graphviz", "wavedrom", "math", "markmap", "smiles",
         // 别名
         "js", "ts", "html", "toml", "c#", "bat"
     ];
-    Constants.CDN = "https://unpkg.com/vditor@".concat("3.11.2");
+    Constants.CDN = "https://unpkg.com/vditor@".concat("3.11.3");
     Constants.MARKDOWN_OPTIONS = {
         autoSpace: false,
+        callout: true,
         gfmAutoLink: true,
         codeBlockPreview: true,
         fixTermTypo: false,
         footnotes: true,
+        imageCaption: false,
         linkBase: "",
         linkPrefix: "",
         listStyle: false,
@@ -2695,6 +2710,8 @@ var Constants = /** @class */ (function () {
         mathBlockPreview: true,
         paragraphBeginningSpace: false,
         sanitize: true,
+        sub: false,
+        sup: false,
         toc: false,
     };
     Constants.HLJS_OPTIONS = {
@@ -2816,6 +2833,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "chartRenderAdapter": () => (/* binding */ chartRenderAdapter),
 /* harmony export */   "abcRenderAdapter": () => (/* binding */ abcRenderAdapter),
 /* harmony export */   "graphvizRenderAdapter": () => (/* binding */ graphvizRenderAdapter),
+/* harmony export */   "wavedromRenderAdapter": () => (/* binding */ wavedromRenderAdapter),
 /* harmony export */   "flowchartRenderAdapter": () => (/* binding */ flowchartRenderAdapter),
 /* harmony export */   "plantumlRenderAdapter": () => (/* binding */ plantumlRenderAdapter)
 /* harmony export */ });
@@ -2851,6 +2869,10 @@ var abcRenderAdapter = {
 var graphvizRenderAdapter = {
     getCode: function (el) { return el.textContent; },
     getElements: function (el) { return el.querySelectorAll(".language-graphviz"); },
+};
+var wavedromRenderAdapter = {
+    getCode: function (el) { return el.textContent; },
+    getElements: function (el) { return el.querySelectorAll(".language-wavedrom"); },
 };
 var flowchartRenderAdapter = {
     getCode: function (el) { return el.textContent; },
@@ -3210,6 +3232,179 @@ var highlightRender = function (hljsOption, element, cdn) {
             });
         });
     });
+};
+
+
+/***/ }),
+
+/***/ 161:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "W": () => (/* binding */ renderImageCaptions),
+/* harmony export */   "V": () => (/* binding */ renderImageCaptionHTML)
+/* harmony export */ });
+var getContentNodes = function (element, ignoreIRMarkers) {
+    if (ignoreIRMarkers === void 0) { ignoreIRMarkers = false; }
+    return Array.from(element.childNodes).filter(function (node) {
+        if (node.nodeType === Node.COMMENT_NODE) {
+            return false;
+        }
+        if (node.nodeType === Node.TEXT_NODE) {
+            return node.textContent.replace(/\u200b/g, "").trim() !== "";
+        }
+        if (!(node instanceof HTMLElement)) {
+            return true;
+        }
+        if (node.tagName === "WBR") {
+            return false;
+        }
+        return !ignoreIRMarkers || !node.classList.contains("vditor-ir__marker");
+    });
+};
+var getWYSIWYGImage = function (paragraph) {
+    var nodes = getContentNodes(paragraph);
+    if (nodes.length !== 1 || !(nodes[0] instanceof HTMLElement)) {
+        return undefined;
+    }
+    var container = nodes[0];
+    if (container instanceof HTMLImageElement) {
+        return {
+            container: container,
+            image: container,
+        };
+    }
+    if (container instanceof HTMLAnchorElement) {
+        var linkNodes = getContentNodes(container);
+        if (linkNodes.length === 1 && linkNodes[0] instanceof HTMLImageElement) {
+            return {
+                container: container,
+                image: linkNodes[0],
+            };
+        }
+    }
+    return undefined;
+};
+var getIRImage = function (paragraph) {
+    var nodes = getContentNodes(paragraph);
+    if (nodes.length !== 1 || !(nodes[0] instanceof HTMLElement)) {
+        return undefined;
+    }
+    var imageNode = nodes[0];
+    if (imageNode.getAttribute("data-type") === "a") {
+        var linkNodes = getContentNodes(imageNode, true);
+        if (linkNodes.length !== 1 || !(linkNodes[0] instanceof HTMLElement)) {
+            return undefined;
+        }
+        imageNode = linkNodes[0];
+    }
+    if (imageNode.getAttribute("data-type") !== "img") {
+        return undefined;
+    }
+    var image = imageNode.querySelector(":scope > img");
+    var titleMarker = imageNode.querySelector(":scope > .vditor-ir__marker--title");
+    if (!(image instanceof HTMLImageElement) || !titleMarker) {
+        return undefined;
+    }
+    var markerText = titleMarker.textContent.trim();
+    var closeMarker = markerText[0] === "(" ? ")" : markerText[0];
+    if (markerText.length < 2 || !["\"", "'", "("].includes(markerText[0]) ||
+        markerText[markerText.length - 1] !== closeMarker) {
+        return undefined;
+    }
+    return {
+        caption: markerText.slice(1, -1).trim(),
+        container: imageNode,
+        image: image,
+    };
+};
+var unwrapWYSIWYGCaptions = function (element) {
+    element.querySelectorAll("span.vditor-image[data-image-caption]").forEach(function (wrapper) {
+        while (wrapper.firstChild) {
+            wrapper.parentNode.insertBefore(wrapper.firstChild, wrapper);
+        }
+        wrapper.remove();
+    });
+};
+var resetIRCaptions = function (element) {
+    element.querySelectorAll(".vditor-image[data-image-caption]").forEach(function (imageNode) {
+        imageNode.classList.remove("vditor-image");
+        imageNode.removeAttribute("data-image-caption");
+    });
+};
+var renderPreviewCaptions = function (element) {
+    element.querySelectorAll("p").forEach(function (paragraph) {
+        var _a;
+        var imageData = getWYSIWYGImage(paragraph);
+        var caption = (_a = imageData === null || imageData === void 0 ? void 0 : imageData.image.getAttribute("title")) === null || _a === void 0 ? void 0 : _a.trim();
+        if (!imageData || !caption) {
+            return;
+        }
+        var figure = document.createElement("figure");
+        Array.from(paragraph.attributes).forEach(function (attribute) {
+            figure.setAttribute(attribute.name, attribute.value);
+        });
+        figure.classList.add("vditor-image");
+        var figcaption = document.createElement("figcaption");
+        figcaption.textContent = caption;
+        figure.append(imageData.container, figcaption);
+        paragraph.replaceWith(figure);
+    });
+};
+var renderWYSIWYGCaptions = function (element) {
+    element.querySelectorAll("p").forEach(function (paragraph) {
+        var _a;
+        var imageData = getWYSIWYGImage(paragraph);
+        var caption = (_a = imageData === null || imageData === void 0 ? void 0 : imageData.image.getAttribute("title")) === null || _a === void 0 ? void 0 : _a.trim();
+        if (!imageData || !caption) {
+            return;
+        }
+        var wrapper = document.createElement("span");
+        wrapper.className = "vditor-image";
+        wrapper.setAttribute("data-image-caption", caption);
+        imageData.container.replaceWith(wrapper);
+        wrapper.append(imageData.container);
+    });
+};
+var renderIRCaptions = function (element) {
+    element.querySelectorAll("p").forEach(function (paragraph) {
+        var imageData = getIRImage(paragraph);
+        if (!(imageData === null || imageData === void 0 ? void 0 : imageData.caption)) {
+            return;
+        }
+        imageData.container.classList.add("vditor-image");
+        imageData.container.setAttribute("data-image-caption", imageData.caption);
+    });
+};
+var renderImageCaptions = function (element, mode, enable) {
+    if (mode === "wysiwyg") {
+        unwrapWYSIWYGCaptions(element);
+    }
+    else if (mode === "ir") {
+        resetIRCaptions(element);
+    }
+    if (!enable) {
+        return;
+    }
+    if (mode === "preview") {
+        renderPreviewCaptions(element);
+    }
+    else if (mode === "wysiwyg") {
+        renderWYSIWYGCaptions(element);
+    }
+    else {
+        renderIRCaptions(element);
+    }
+};
+var renderImageCaptionHTML = function (html, enable) {
+    if (!enable) {
+        return html;
+    }
+    var container = document.createElement("div");
+    container.innerHTML = html;
+    renderImageCaptions(container, "preview", true);
+    return container.innerHTML;
 };
 
 
@@ -3600,7 +3795,7 @@ var mermaidRender = function (element, cdn, theme) {
     if (mermaidElements.length === 0) {
         return;
     }
-    (0,_util_addScript__WEBPACK_IMPORTED_MODULE_2__/* .addScript */ .G)("".concat(cdn, "/dist/js/mermaid/mermaid.min.js?v=11.6.0"), "vditorMermaidScript").then(function () {
+    (0,_util_addScript__WEBPACK_IMPORTED_MODULE_2__/* .addScript */ .G)("".concat(cdn, "/dist/js/mermaid/mermaid.min.js?v=11.16.1"), "vditorMermaidScript").then(function () {
         var config = {
             securityLevel: "loose",
             altFontFamily: "sans-serif",
@@ -3939,6 +4134,7 @@ var setLute = function (options) {
     lute.SetHeadingAnchor(options.headingAnchor);
     lute.SetInlineMathAllowDigitAfterOpenMarker(options.inlineMathDigit);
     lute.SetAutoSpace(options.autoSpace);
+    lute.SetCallout(options.callout);
     lute.SetToC(options.toc);
     lute.SetFootnotes(options.footnotes);
     lute.SetFixTermTypo(options.fixTermTypo);
@@ -3954,7 +4150,118 @@ var setLute = function (options) {
     if (options.lazyLoadImage) {
         lute.SetImageLazyLoading(options.lazyLoadImage);
     }
+    lute.SetSup(options.sup);
+    lute.SetSub(options.sub);
     return lute;
+};
+
+
+/***/ }),
+
+/***/ 497:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "F": () => (/* binding */ wavedromRender)
+/* harmony export */ });
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(145);
+/* harmony import */ var _util_addScript__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(413);
+/* harmony import */ var _util_function__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(494);
+/* harmony import */ var _adapterRender__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(840);
+var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (undefined && undefined.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+
+
+
+
+var wavedromIndex = 0;
+var wavedromRender = function (element, cdn) {
+    if (element === void 0) { element = document; }
+    if (cdn === void 0) { cdn = _constants__WEBPACK_IMPORTED_MODULE_0__/* .Constants.CDN */ .g.CDN; }
+    var wavedromElements = _adapterRender__WEBPACK_IMPORTED_MODULE_1__.wavedromRenderAdapter.getElements(element);
+    if (wavedromElements.length === 0) {
+        return;
+    }
+    (0,_util_addScript__WEBPACK_IMPORTED_MODULE_2__/* .addScript */ .G)("".concat(cdn, "/dist/js/wavedrom/wavedrom.min.js?v=3.6.2"), "vditorWavedromScript").then(function () {
+        wavedromElements.forEach(function (item) { return __awaiter(void 0, void 0, void 0, function () {
+            var code, renderElement, source, error_1, message, lineBreak;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (item.parentElement.classList.contains("vditor-wysiwyg__pre") ||
+                            item.parentElement.classList.contains("vditor-ir__marker--pre")) {
+                            return [2 /*return*/];
+                        }
+                        code = _adapterRender__WEBPACK_IMPORTED_MODULE_1__.wavedromRenderAdapter.getCode(item);
+                        if (item.getAttribute("data-processed") === "true" || code.trim() === "") {
+                            return [2 /*return*/];
+                        }
+                        renderElement = item;
+                        if (item.tagName === "CODE") {
+                            renderElement = document.createElement("div");
+                            Array.from(item.attributes).forEach(function (attribute) {
+                                renderElement.setAttribute(attribute.name, attribute.value);
+                            });
+                            item.replaceWith(renderElement);
+                        }
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, (0,_util_function__WEBPACK_IMPORTED_MODULE_3__/* .looseJsonParse */ .Qf)(code)];
+                    case 2:
+                        source = _a.sent();
+                        wavedrom.renderWaveElement(wavedromIndex, source, renderElement, wavedrom.waveSkin, false);
+                        wavedromIndex++;
+                        return [3 /*break*/, 4];
+                    case 3:
+                        error_1 = _a.sent();
+                        message = error_1 instanceof Error ? error_1.message : String(error_1);
+                        lineBreak = document.createElement("br");
+                        renderElement.replaceChildren(document.createTextNode("wavedrom render error:"), lineBreak, document.createTextNode(message));
+                        renderElement.classList.add("vditor-reset--error");
+                        return [3 /*break*/, 4];
+                    case 4:
+                        renderElement.setAttribute("data-processed", "true");
+                        return [2 /*return*/];
+                }
+            });
+        }); });
+    });
 };
 
 
@@ -4975,6 +5282,8 @@ var DevTools = /** @class */ (function () {
 }());
 
 
+// EXTERNAL MODULE: ./src/ts/markdown/imageCaptionRender.ts
+var imageCaptionRender = __webpack_require__(161);
 // EXTERNAL MODULE: ./src/ts/util/compatibility.ts
 var compatibility = __webpack_require__(410);
 ;// CONCATENATED MODULE: ./src/ts/toolbar/setToolbar.ts
@@ -5129,7 +5438,10 @@ var mindmapRender = __webpack_require__(194);
 var plantumlRender = __webpack_require__(229);
 // EXTERNAL MODULE: ./src/ts/markdown/SMILESRender.ts
 var SMILESRender = __webpack_require__(825);
+// EXTERNAL MODULE: ./src/ts/markdown/wavedromRender.ts
+var wavedromRender = __webpack_require__(497);
 ;// CONCATENATED MODULE: ./src/ts/util/processCode.ts
+
 
 
 
@@ -5220,6 +5532,9 @@ var processCodeRender = function (previewPanel, vditor) {
     }
     else if (language === "graphviz") {
         (0,graphvizRender/* graphvizRender */.v)(previewPanel, vditor.options.cdn);
+    }
+    else if (language === "wavedrom") {
+        (0,wavedromRender/* wavedromRender */.F)(previewPanel, vditor.options.cdn);
     }
     else if (language === "math") {
         (0,mathRender/* mathRender */.H)(previewPanel, { cdn: vditor.options.cdn, math: vditor.options.preview.math });
@@ -6545,12 +6860,14 @@ var highlightToolbarIR = function (vditor) {
 ;// CONCATENATED MODULE: ./src/ts/wysiwyg/afterRenderEvent.ts
 
 
+
 var afterRenderEvent = function (vditor, options) {
     if (options === void 0) { options = {
         enableAddUndoStack: true,
         enableHint: false,
         enableInput: true,
     }; }
+    (0,imageCaptionRender/* renderImageCaptions */.W)(vditor.wysiwyg.element, "wysiwyg", vditor.options.preview.markdown.imageCaption);
     if (options.enableHint) {
         vditor.hint.render(vditor);
     }
@@ -6709,6 +7026,84 @@ var modifyPre = function (vditor, range) {
 
 
 
+var createBlockElement = function (element, tagName) {
+    var blockElement = element.ownerDocument.createElement(tagName);
+    blockElement.setAttribute("data-block", "0");
+    return blockElement;
+};
+var replaceBlockElement = function (element, tagName) {
+    var blockElement = createBlockElement(element, tagName);
+    while (element.firstChild) {
+        blockElement.appendChild(element.firstChild);
+    }
+    element.replaceWith(blockElement);
+    return blockElement;
+};
+var isListItemBlock = function (node) {
+    if (node.nodeType !== 1) {
+        return false;
+    }
+    var element = node;
+    return element.getAttribute("data-block") === "0" || element.tagName === "INPUT";
+};
+var getListItemInlineNodes = function (itemElement, wbrElement) {
+    var _a, _b;
+    var anchorNode = wbrElement;
+    while (anchorNode.parentNode && !anchorNode.parentNode.isSameNode(itemElement)) {
+        anchorNode = anchorNode.parentNode;
+    }
+    if (!((_a = anchorNode.parentNode) === null || _a === void 0 ? void 0 : _a.isSameNode(itemElement))) {
+        return [];
+    }
+    var firstNode = anchorNode;
+    var lastNode = anchorNode;
+    while (firstNode.previousSibling && !isListItemBlock(firstNode.previousSibling)) {
+        firstNode = firstNode.previousSibling;
+    }
+    while (lastNode.nextSibling && !isListItemBlock(lastNode.nextSibling)) {
+        lastNode = lastNode.nextSibling;
+    }
+    // 任务列表的复选框和正文之间需要保留分隔空格。
+    if (firstNode.previousSibling instanceof HTMLInputElement && firstNode.nodeType === 3) {
+        var leadingWhitespace = (_b = firstNode.textContent.match(/^\s+/)) === null || _b === void 0 ? void 0 : _b[0];
+        if (leadingWhitespace) {
+            firstNode.textContent = firstNode.textContent.substring(leadingWhitespace.length);
+            itemElement.insertBefore(itemElement.ownerDocument.createTextNode(leadingWhitespace), firstNode);
+        }
+    }
+    var nodes = [];
+    var node = firstNode;
+    while (node) {
+        nodes.push(node);
+        if (node.isSameNode(lastNode)) {
+            break;
+        }
+        node = node.nextSibling;
+    }
+    return nodes;
+};
+var setListItemHeading = function (itemElement, wbrElement, tagName) {
+    var inlineNodes = getListItemInlineNodes(itemElement, wbrElement);
+    if (inlineNodes.length === 0) {
+        return false;
+    }
+    var headingElement = createBlockElement(itemElement, tagName);
+    itemElement.insertBefore(headingElement, inlineNodes[0]);
+    inlineNodes.forEach(function (node) {
+        headingElement.appendChild(node);
+    });
+    if (headingElement.innerHTML.trim() === "<wbr>") {
+        headingElement.appendChild(itemElement.ownerDocument.createElement("br"));
+    }
+    return true;
+};
+var unwrapBlockElement = function (element) {
+    var fragment = element.ownerDocument.createDocumentFragment();
+    while (element.firstChild) {
+        fragment.appendChild(element.firstChild);
+    }
+    element.replaceWith(fragment);
+};
 var setHeading = function (vditor, tagName) {
     var range = (0,selection/* getEditorRange */.zh)(vditor);
     var blockElement = (0,hasClosest/* hasClosestBlock */.F9)(range.startContainer);
@@ -6719,23 +7114,36 @@ var setHeading = function (vditor, tagName) {
         blockElement = vditor.wysiwyg.element;
     }
     if (blockElement && !blockElement.classList.contains("vditor-wysiwyg__block")) {
-        range.insertNode(document.createElement("wbr"));
+        var wbrElement = document.createElement("wbr");
+        range.insertNode(wbrElement);
         // Firefox 需要 trim https://github.com/Vanessa219/vditor/issues/207
         if (blockElement.innerHTML.trim() === "<wbr>") {
             // Firefox 光标对不齐 https://github.com/Vanessa219/vditor/issues/199 1
             blockElement.innerHTML = "<wbr><br>";
         }
-        if (blockElement.tagName === "BLOCKQUOTE" || blockElement.classList.contains("vditor-reset")) {
-            blockElement.innerHTML = "<".concat(tagName, " data-block=\"0\">").concat(blockElement.innerHTML.trim(), "</").concat(tagName, ">");
+        var itemElement = (0,hasClosest/* hasClosestByMatchTag */.lG)(wbrElement, "LI");
+        if (itemElement && blockElement.isSameNode(itemElement.parentElement)) {
+            if (!setListItemHeading(itemElement, wbrElement, tagName)) {
+                wbrElement.remove();
+                return;
+            }
+        }
+        else if (blockElement.tagName === "BLOCKQUOTE" || blockElement.classList.contains("vditor-reset")) {
+            var headingElement = createBlockElement(blockElement, tagName);
+            while (blockElement.firstChild) {
+                headingElement.appendChild(blockElement.firstChild);
+            }
+            blockElement.appendChild(headingElement);
         }
         else {
-            blockElement.outerHTML = "<".concat(tagName, " data-block=\"0\">").concat(blockElement.innerHTML.trim(), "</").concat(tagName, ">");
+            replaceBlockElement(blockElement, tagName);
         }
         (0,selection/* setRangeByWbr */.ib)(vditor.wysiwyg.element, range);
         renderToc(vditor);
     }
 };
 var removeHeading = function (vditor) {
+    var _a, _b;
     var range = getSelection().getRangeAt(0);
     var blockElement = (0,hasClosest/* hasClosestBlock */.F9)(range.startContainer);
     if (!blockElement) {
@@ -6743,8 +7151,15 @@ var removeHeading = function (vditor) {
     }
     if (blockElement) {
         range.insertNode(document.createElement("wbr"));
-        blockElement.outerHTML = "<p data-block=\"0\">".concat(blockElement.innerHTML, "</p>");
+        if (((_a = blockElement.parentElement) === null || _a === void 0 ? void 0 : _a.tagName) === "LI" &&
+            ((_b = blockElement.parentElement.parentElement) === null || _b === void 0 ? void 0 : _b.getAttribute("data-tight")) === "true") {
+            unwrapBlockElement(blockElement);
+        }
+        else {
+            replaceBlockElement(blockElement, "p");
+        }
         (0,selection/* setRangeByWbr */.ib)(vditor.wysiwyg.element, range);
+        renderToc(vditor);
     }
     vditor.wysiwyg.popover.style.display = "none";
 };
@@ -7097,6 +7512,7 @@ var removeBlockElement = function (vditor, event) {
 };
 
 ;// CONCATENATED MODULE: ./src/ts/wysiwyg/highlightToolbarWYSIWYG.ts
+
 
 
 
@@ -8080,6 +8496,7 @@ var genImagePopover = function (event, vditor) {
         imgElement.setAttribute("src", inputElement.value);
         imgElement.setAttribute("alt", alt.value);
         imgElement.setAttribute("title", title.value);
+        (0,imageCaptionRender/* renderImageCaptions */.W)(vditor.wysiwyg.element, "wysiwyg", vditor.options.preview.markdown.imageCaption);
         if (typeof vditor.options.input === "function") {
             vditor.options.input(getMarkdown(vditor));
         }
@@ -8145,7 +8562,9 @@ var focusToElement = function (event, range) {
     }
 };
 var customWysiwygToolbar = function (vditor, type) {
-    vditor.options.customWysiwygToolbar(type, vditor.wysiwyg.popover);
+    if (vditor.options.customWysiwygToolbar) {
+        vditor.options.customWysiwygToolbar(type, vditor.wysiwyg.popover);
+    }
 };
 
 ;// CONCATENATED MODULE: ./src/ts/util/highlightToolbar.ts
@@ -9633,6 +10052,7 @@ var input_input = function (vditor, range, event) {
         }
         var isWYSIWYGElement = blockElement.isEqualNode(vditor.wysiwyg.element);
         var footnoteElement = (0,hasClosest/* hasClosestByAttribute */.a1)(blockElement, "data-type", "footnotes-block");
+        var calloutElement = (0,hasClosest/* hasClosestByAttribute */.a1)(range.startContainer, "data-type", "callout");
         if (!isWYSIWYGElement) {
             // 列表需要到最顶层
             var topListElement = (0,hasClosest/* getTopList */.O9)(range.startContainer);
@@ -9649,6 +10069,9 @@ var input_input = function (vditor, range, event) {
             // 修改脚注
             if (footnoteElement) {
                 blockElement = footnoteElement;
+            }
+            if (calloutElement) {
+                blockElement = calloutElement;
             }
             html_1 = blockElement.outerHTML;
             if (blockElement.tagName === "UL" || blockElement.tagName === "OL") {
@@ -10223,8 +10646,39 @@ var execAfterRender = function (vditor, options) {
         processAfterRender(vditor, options);
     }
 };
+var isEmptyListItem = function (liElement) {
+    if (liElement.textContent.split(constants/* Constants.ZWSP */.g.ZWSP).join("").trim() !== "") {
+        return false;
+    }
+    return !liElement.querySelector([
+        "audio", "canvas", "embed", "hr", "iframe", "img", "object", "ol", "pre", "svg", "table", "ul", "video",
+        "input:not([type='checkbox'])",
+    ].join(", "));
+};
+var exitEmptyListItem = function (liElement) {
+    var listElement = liElement.parentElement;
+    var listParent = listElement.parentElement;
+    var paragraphElement = document.createElement("p");
+    paragraphElement.setAttribute("data-block", "0");
+    paragraphElement.innerHTML = "<wbr>";
+    var trailingListElement;
+    if (liElement.nextElementSibling) {
+        trailingListElement = listElement.cloneNode(false);
+        while (liElement.nextElementSibling) {
+            trailingListElement.appendChild(liElement.nextElementSibling);
+        }
+        listParent.insertBefore(trailingListElement, listElement.nextSibling);
+    }
+    liElement.remove();
+    if (listElement.childElementCount === 0) {
+        listParent.replaceChild(paragraphElement, listElement);
+    }
+    else {
+        listParent.insertBefore(paragraphElement, trailingListElement || listElement.nextSibling);
+    }
+    return paragraphElement;
+};
 var fixList = function (range, vditor, pElement, event) {
-    var _a;
     var startContainer = range.startContainer;
     var liElement = (0,hasClosest/* hasClosestByMatchTag */.lG)(startContainer, "LI");
     if (liElement) {
@@ -10241,6 +10695,26 @@ var fixList = function (range, vditor, pElement, event) {
             event.preventDefault();
             return true;
         }
+        // 嵌套列表末尾的空列表项回车后转为父列表项中的段落
+        // https://github.com/Vanessa219/vditor/issues/939
+        if (!(0,compatibility/* isCtrl */.yl)(event) && !event.shiftKey && !event.altKey && event.key === "Enter" && range.collapsed &&
+            !liElement.nextElementSibling && liElement.parentElement.parentElement.tagName === "LI" &&
+            isEmptyListItem(liElement)) {
+            var paragraphElement = exitEmptyListItem(liElement);
+            (0,selection/* setRangeByWbr */.ib)(paragraphElement, range);
+            execAfterRender(vditor);
+            event.preventDefault();
+            return true;
+        }
+        // 空列表项删除标记后退出当前列表
+        if (!(0,compatibility/* isCtrl */.yl)(event) && !event.shiftKey && !event.altKey && event.key === "Backspace" &&
+            liElement.textContent.trim().replace(constants/* Constants.ZWSP */.g.ZWSP, "") === "" && range.toString() === "") {
+            var paragraphElement = exitEmptyListItem(liElement);
+            (0,selection/* setRangeByWbr */.ib)(paragraphElement, range);
+            execAfterRender(vditor);
+            event.preventDefault();
+            return true;
+        }
         if (!(0,compatibility/* isCtrl */.yl)(event) && !event.shiftKey && !event.altKey && event.key === "Backspace" &&
             !liElement.previousElementSibling && range.toString() === "" &&
             (0,selection/* getSelectPosition */.im)(liElement, vditor[vditor.currentMode].element, range).start === 0) {
@@ -10252,19 +10726,6 @@ var fixList = function (range, vditor, pElement, event) {
             else {
                 liElement.parentElement.outerHTML = "<p data-block=\"0\"><wbr>".concat(liElement.innerHTML, "</p>");
             }
-            (0,selection/* setRangeByWbr */.ib)(vditor[vditor.currentMode].element, range);
-            execAfterRender(vditor);
-            event.preventDefault();
-            return true;
-        }
-        // 空列表删除后与上一级段落对齐
-        if (!(0,compatibility/* isCtrl */.yl)(event) && !event.shiftKey && !event.altKey && event.key === "Backspace" &&
-            liElement.textContent.trim().replace(constants/* Constants.ZWSP */.g.ZWSP, "") === "" &&
-            range.toString() === "" && ((_a = liElement.previousElementSibling) === null || _a === void 0 ? void 0 : _a.tagName) === "LI") {
-            liElement.previousElementSibling.insertAdjacentText("beforeend", "\n\n");
-            range.selectNodeContents(liElement.previousElementSibling);
-            range.collapse(false);
-            liElement.remove();
             (0,selection/* setRangeByWbr */.ib)(vditor[vditor.currentMode].element, range);
             execAfterRender(vditor);
             event.preventDefault();
@@ -10765,9 +11226,30 @@ var fixCodeBlock = function (vditor, event, codeRenderElement, range) {
     return false;
 };
 var fixBlockquote = function (vditor, range, event, pElement) {
+    var _a;
     var startContainer = range.startContainer;
     var blockquoteElement = (0,hasClosest/* hasClosestByMatchTag */.lG)(startContainer, "BLOCKQUOTE");
     if (blockquoteElement && range.toString() === "") {
+        if (pElement && event.key === "Enter" && !(0,compatibility/* isCtrl */.yl)(event) && !event.shiftKey && !event.altKey &&
+            pElement.parentElement.isSameNode(blockquoteElement) &&
+            (0,hasClosest/* hasClosestByMatchTag */.lG)(blockquoteElement.parentElement, "LI") &&
+            (range.collapsed || !range.cloneContents().firstElementChild) &&
+            pElement.innerHTML.replace(constants/* Constants.ZWSP */.g.ZWSP, "") !== "\n" &&
+            pElement.innerHTML.replace(constants/* Constants.ZWSP */.g.ZWSP, "") !== "") {
+            // 列表内的引用由浏览器处理回车时会新建列表项 https://github.com/Vanessa219/vditor/issues/1925
+            var trailingRange = range.cloneRange();
+            trailingRange.setEnd(pElement, pElement.childNodes.length);
+            var paragraphElement = document.createElement("p");
+            paragraphElement.setAttribute("data-block", "0");
+            paragraphElement.appendChild(trailingRange.extractContents());
+            pElement.insertAdjacentElement("afterend", paragraphElement);
+            range.setStart(paragraphElement, 0);
+            range.collapse(true);
+            (0,selection/* setSelectionFocus */.Hc)(range);
+            execAfterRender(vditor);
+            event.preventDefault();
+            return true;
+        }
         if (event.key === "Backspace" && !(0,compatibility/* isCtrl */.yl)(event) && !event.shiftKey && !event.altKey &&
             (0,selection/* getSelectPosition */.im)(blockquoteElement, vditor[vditor.currentMode].element, range).start === 0) {
             // Backspace: 光标位于引用中的第零个字符，仅删除引用标签
@@ -10814,8 +11296,14 @@ var fixBlockquote = function (vditor, range, event, pElement) {
             event.preventDefault();
             return true;
         }
-        if (insertAfterBlock(vditor, event, range, blockquoteElement, blockquoteElement)) {
+        var itemElement = blockquoteElement.parentElement.tagName === "LI" ? blockquoteElement.parentElement : null;
+        var afterBlockElement = !blockquoteElement.nextElementSibling && ((_a = itemElement === null || itemElement === void 0 ? void 0 : itemElement.nextElementSibling) === null || _a === void 0 ? void 0 : _a.tagName) === "LI" ?
+            itemElement : blockquoteElement;
+        if (insertAfterBlock(vditor, event, range, blockquoteElement, afterBlockElement)) {
             return true;
+        }
+        if (event.key === "ArrowUp" && itemElement && !blockquoteElement.previousElementSibling) {
+            return false;
         }
         if (insertBeforeBlock(vditor, event, range, blockquoteElement, blockquoteElement)) {
             return true;
@@ -11029,6 +11517,11 @@ var paste = function (vditor, event, callback) { return fixBrowserBehavior_await
                 renderers = {};
                 renderLinkDest = function (node, entering) {
                     if (!entering) {
+                        return ["", Lute.WalkContinue];
+                    }
+                    var parent = node.__internal_object__.Parent;
+                    // 链接引用的目标地址由定义节点提供，不在引用位置重复渲染
+                    if (parent.Type === 33 && parent.LinkType === 3) {
                         return ["", Lute.WalkContinue];
                     }
                     if (vditor.options.upload.renderLinkDest) {
@@ -11350,6 +11843,7 @@ var templateObject_1;
 
 
 
+
 var processHint = function (vditor) {
     var _a, _b;
     vditor.hint.render(vditor);
@@ -11384,6 +11878,7 @@ var process_processAfterRender = function (vditor, options) {
         enableHint: false,
         enableInput: true,
     }; }
+    (0,imageCaptionRender/* renderImageCaptions */.W)(vditor.ir.element, "ir", vditor.options.preview.markdown.imageCaption);
     if (options.enableHint) {
         processHint(vditor);
     }
@@ -11433,12 +11928,25 @@ var process_processHeading = function (vditor, value) {
 var removeInline = function (range, vditor, type) {
     var inlineElement = (0,hasClosest/* hasClosestByAttribute */.a1)(range.startContainer, "data-type", type);
     if (inlineElement) {
+        var keepSelection = !range.collapsed;
         inlineElement.firstElementChild.remove();
         inlineElement.lastElementChild.remove();
+        if (keepSelection) {
+            var endRange = range.cloneRange();
+            endRange.collapse(false);
+            endRange.insertNode(document.createElement("wbr"));
+        }
         range.insertNode(document.createElement("wbr"));
         var tempElement = document.createElement("div");
         tempElement.innerHTML = vditor.lute.SpinVditorIRDOM(inlineElement.outerHTML);
         inlineElement.outerHTML = tempElement.firstElementChild.innerHTML.trim();
+        if (keepSelection) {
+            (0,selection/* setRangeByWbr */.ib)(vditor.ir.element, range);
+            var endWbrElement = vditor.ir.element.querySelector("wbr");
+            range.setEndBefore(endWbrElement);
+            endWbrElement.remove();
+            (0,selection/* setSelectionFocus */.Hc)(range);
+        }
     }
 };
 var process_processToolbar = function (vditor, actionBtn, prefix, suffix) {
@@ -11531,6 +12039,7 @@ var process_processToolbar = function (vditor, actionBtn, prefix, suffix) {
         else if (commandName === "italic" || commandName === "bold" || commandName === "strike"
             || commandName === "inline-code" || commandName === "code" || commandName === "table") {
             var html = void 0;
+            var keepSelection = false;
             if (range.toString() === "") {
                 html = "".concat(prefix, "<wbr>").concat(suffix);
             }
@@ -11542,7 +12051,8 @@ var process_processToolbar = function (vditor, actionBtn, prefix, suffix) {
                     html = "".concat(prefix).concat(range.toString(), "<wbr>").concat(suffix);
                 }
                 else {
-                    html = "".concat(prefix).concat(range.toString()).concat(suffix, "<wbr>");
+                    html = "".concat(prefix, "<wbr>").concat(range.toString(), "<wbr>").concat(suffix);
+                    keepSelection = true;
                 }
                 range.deleteContents();
             }
@@ -11553,6 +12063,12 @@ var process_processToolbar = function (vditor, actionBtn, prefix, suffix) {
             spanElement.innerHTML = html;
             range.insertNode(spanElement);
             input(vditor, range);
+            if (keepSelection) {
+                var endWbrElement = vditor.ir.element.querySelector("wbr");
+                range.setEndBefore(endWbrElement);
+                endWbrElement.remove();
+                (0,selection/* setSelectionFocus */.Hc)(range);
+            }
             if (commandName === "table") {
                 range.selectNodeContents(getSelection().getRangeAt(0).startContainer.parentElement);
                 (0,selection/* setSelectionFocus */.Hc)(range);
@@ -11902,6 +12418,27 @@ var Hint = /** @class */ (function () {
 
 
 
+
+var getHeadingMarker = function (headingElement) {
+    return Array.from(headingElement.children).find(function (item) { return item.getAttribute("data-type") === "heading-marker"; });
+};
+var restoreHeadingMarker = function (sourceHeading, copiedHeading) {
+    if (!sourceHeading || !copiedHeading || sourceHeading.tagName !== copiedHeading.tagName ||
+        sourceHeading.getAttribute("data-marker") !== copiedHeading.getAttribute("data-marker") ||
+        copiedHeading.textContent.trim() === "" || getHeadingMarker(copiedHeading)) {
+        return;
+    }
+    var markerElement = getHeadingMarker(sourceHeading);
+    if (!markerElement) {
+        return;
+    }
+    if (sourceHeading.firstElementChild === markerElement) {
+        copiedHeading.insertBefore(markerElement.cloneNode(true), copiedHeading.firstChild);
+    }
+    else if (sourceHeading.lastElementChild === markerElement) {
+        copiedHeading.appendChild(markerElement.cloneNode(true));
+    }
+};
 var IR = /** @class */ (function () {
     function IR(vditor) {
         this.composingLock = false;
@@ -11928,6 +12465,9 @@ var IR = /** @class */ (function () {
         event.preventDefault();
         var tempElement = document.createElement("div");
         tempElement.appendChild(range.cloneContents());
+        var copiedHeadings = tempElement.querySelectorAll("h1, h2, h3, h4, h5, h6");
+        restoreHeadingMarker((0,hasClosestByHeadings/* hasClosestByHeadings */.W)(range.startContainer), copiedHeadings.item(0));
+        restoreHeadingMarker((0,hasClosestByHeadings/* hasClosestByHeadings */.W)(range.endContainer), copiedHeadings.item(copiedHeadings.length - 1));
         event.clipboardData.setData("text/plain", vditor.lute.VditorIRDOM2Md(tempElement.innerHTML).trim());
         event.clipboardData.setData("text/html", "");
     };
@@ -12125,16 +12665,19 @@ var IR = /** @class */ (function () {
 
 ;// CONCATENATED MODULE: ./src/ts/markdown/getHTML.ts
 
+
 var getHTML = function (vditor) {
+    var html = "";
     if (vditor.currentMode === "sv") {
-        return vditor.lute.Md2HTML(getMarkdown(vditor));
+        html = vditor.lute.Md2HTML(getMarkdown(vditor));
     }
     else if (vditor.currentMode === "wysiwyg") {
-        return vditor.lute.VditorDOM2HTML(vditor.wysiwyg.element.innerHTML);
+        html = vditor.lute.VditorDOM2HTML(vditor.wysiwyg.element.innerHTML);
     }
     else if (vditor.currentMode === "ir") {
-        return vditor.lute.VditorIRDOM2HTML(vditor.ir.element.innerHTML);
+        html = vditor.lute.VditorIRDOM2HTML(vditor.ir.element.innerHTML);
     }
+    return (0,imageCaptionRender/* renderImageCaptionHTML */.V)(html, vditor.options.preview.markdown.imageCaption);
 };
 
 // EXTERNAL MODULE: ./src/ts/markdown/setLute.ts
@@ -12191,6 +12734,8 @@ var Outline = /** @class */ (function () {
 // EXTERNAL MODULE: ./src/ts/markdown/mediaRender.ts
 var mediaRender = __webpack_require__(280);
 ;// CONCATENATED MODULE: ./src/ts/preview/index.ts
+
+
 
 
 
@@ -12339,6 +12884,7 @@ var Preview = /** @class */ (function () {
         }
         if (value) {
             this.previewElement.innerHTML = value;
+            (0,imageCaptionRender/* renderImageCaptions */.W)(this.previewElement, "preview", vditor.options.preview.markdown.imageCaption);
             return;
         }
         if (getMarkdown(vditor)
@@ -12390,6 +12936,7 @@ var Preview = /** @class */ (function () {
         }, vditor.options.preview.delay);
     };
     Preview.prototype.afterRender = function (vditor, startTime) {
+        (0,imageCaptionRender/* renderImageCaptions */.W)(this.previewElement, "preview", vditor.options.preview.markdown.imageCaption);
         if (vditor.options.preview.parse) {
             vditor.options.preview.parse(this.element);
         }
@@ -12414,6 +12961,7 @@ var Preview = /** @class */ (function () {
         (0,SMILESRender/* SMILESRender */.J)(vditor.preview.previewElement, vditor.options.cdn, vditor.options.theme);
         (0,flowchartRender/* flowchartRender */.P)(vditor.preview.previewElement, vditor.options.cdn);
         (0,graphvizRender/* graphvizRender */.v)(vditor.preview.previewElement, vditor.options.cdn);
+        (0,wavedromRender/* wavedromRender */.F)(vditor.preview.previewElement, vditor.options.cdn);
         (0,chartRender/* chartRender */.p)(vditor.preview.previewElement, vditor.options.cdn, vditor.options.theme);
         (0,mindmapRender/* mindmapRender */.P)(vditor.preview.previewElement, vditor.options.cdn, vditor.options.theme);
         (0,plantumlRender/* plantumlRender */.B)(vditor.preview.previewElement, vditor.options.cdn);
@@ -13112,7 +13660,7 @@ var exportPDF = function (vditor) {
     vditor.tip.show(window.VditorI18n.generate, 3800);
     var iframe = document.querySelector("#vditorExportIframe");
     iframe.contentDocument.open();
-    iframe.contentDocument.write("<link rel=\"stylesheet\" href=\"".concat(vditor.options.cdn, "/dist/index.css\"/>\n<script src=\"").concat(vditor.options.cdn, "/dist/method.min.js\"></script>\n<div id=\"preview\" style=\"width: 800px\"></div>\n<script>\nwindow.addEventListener(\"message\", (e) => {\n  if(!e.data) {\n    return;\n  }\n  Vditor.preview(document.getElementById('preview'), e.data, {\n    cdn: \"").concat(vditor.options.cdn, "\",\n    markdown: {\n      theme: ").concat(JSON.stringify(vditor.options.preview.theme), "\n    },\n    hljs: {\n      style: \"").concat(vditor.options.preview.hljs.style, "\"\n    }\n  });\n  setTimeout(() => {\n        window.print();\n    }, 3600);\n}, false);\n</script>"));
+    iframe.contentDocument.write("<link rel=\"stylesheet\" href=\"".concat(vditor.options.cdn, "/dist/index.css\"/>\n<script src=\"").concat(vditor.options.cdn, "/dist/method.min.js\"></script>\n<div id=\"preview\" style=\"width: 800px\"></div>\n<script>\nwindow.addEventListener(\"message\", (e) => {\n  if(!e.data) {\n    return;\n  }\n  Vditor.preview(document.getElementById('preview'), e.data, {\n    cdn: \"").concat(vditor.options.cdn, "\",\n    markdown: {\n      callout: ").concat(JSON.stringify(vditor.options.preview.markdown.callout), ",\n      theme: ").concat(JSON.stringify(vditor.options.preview.theme), "\n    },\n    hljs: {\n      style: \"").concat(vditor.options.preview.hljs.style, "\"\n    }\n  });\n  setTimeout(() => {\n        window.print();\n    }, 3600);\n}, false);\n</script>"));
     iframe.contentDocument.close();
     setTimeout(function () {
         iframe.contentWindow.postMessage(getMarkdown(vditor), "*");
@@ -13120,7 +13668,7 @@ var exportPDF = function (vditor) {
 };
 var exportHTML = function (vditor) {
     var content = getHTML(vditor);
-    var html = "<html><head><link rel=\"stylesheet\" type=\"text/css\" href=\"".concat(vditor.options.cdn, "/dist/index.css\"/>\n<script src=\"").concat(vditor.options.cdn, "/dist/js/i18n/").concat(vditor.options.lang, ".js\"></script>\n<script src=\"").concat(vditor.options.cdn, "/dist/method.min.js\"></script></head>\n<body><div class=\"vditor-reset\" id=\"preview\">").concat(content, "</div>\n<script>\n    const previewElement = document.getElementById('preview')\n    Vditor.setContentTheme('").concat(vditor.options.preview.theme.current, "', '").concat(vditor.options.preview.theme.path, "');\n    Vditor.codeRender(previewElement);\n    Vditor.highlightRender(").concat(JSON.stringify(vditor.options.preview.hljs), ", previewElement, '").concat(vditor.options.cdn, "');\n    Vditor.mathRender(previewElement, {\n        cdn: '").concat(vditor.options.cdn, "',\n        math: ").concat(JSON.stringify(vditor.options.preview.math), ",\n    });\n    Vditor.mermaidRender(previewElement, '").concat(vditor.options.cdn, "', '").concat(vditor.options.theme, "');\n    Vditor.SMILESRender(previewElement, '").concat(vditor.options.cdn, "', '").concat(vditor.options.theme, "');\n    Vditor.markmapRender(previewElement, '").concat(vditor.options.cdn, "');\n    Vditor.flowchartRender(previewElement, '").concat(vditor.options.cdn, "');\n    Vditor.graphvizRender(previewElement, '").concat(vditor.options.cdn, "');\n    Vditor.chartRender(previewElement, '").concat(vditor.options.cdn, "', '").concat(vditor.options.theme, "');\n    Vditor.mindmapRender(previewElement, '").concat(vditor.options.cdn, "', '").concat(vditor.options.theme, "');\n    Vditor.abcRender(previewElement, '").concat(vditor.options.cdn, "');\n    ").concat(vditor.options.preview.render.media.enable ? 'Vditor.mediaRender(previewElement);' : "", "\n    Vditor.speechRender(previewElement);\n</script>\n<script src=\"").concat(vditor.options.cdn, "/dist/js/icons/").concat(vditor.options.icon, ".js\"></script></body></html>");
+    var html = "<html><head><link rel=\"stylesheet\" type=\"text/css\" href=\"".concat(vditor.options.cdn, "/dist/index.css\"/>\n<script src=\"").concat(vditor.options.cdn, "/dist/js/i18n/").concat(vditor.options.lang, ".js\"></script>\n<script src=\"").concat(vditor.options.cdn, "/dist/method.min.js\"></script></head>\n<body><div class=\"vditor-reset\" id=\"preview\">").concat(content, "</div>\n<script>\n    const previewElement = document.getElementById('preview')\n    Vditor.setContentTheme('").concat(vditor.options.preview.theme.current, "', '").concat(vditor.options.preview.theme.path, "');\n    Vditor.codeRender(previewElement);\n    Vditor.highlightRender(").concat(JSON.stringify(vditor.options.preview.hljs), ", previewElement, '").concat(vditor.options.cdn, "');\n    Vditor.mathRender(previewElement, {\n        cdn: '").concat(vditor.options.cdn, "',\n        math: ").concat(JSON.stringify(vditor.options.preview.math), ",\n    });\n    Vditor.mermaidRender(previewElement, '").concat(vditor.options.cdn, "', '").concat(vditor.options.theme, "');\n    Vditor.SMILESRender(previewElement, '").concat(vditor.options.cdn, "', '").concat(vditor.options.theme, "');\n    Vditor.markmapRender(previewElement, '").concat(vditor.options.cdn, "');\n    Vditor.flowchartRender(previewElement, '").concat(vditor.options.cdn, "');\n    Vditor.graphvizRender(previewElement, '").concat(vditor.options.cdn, "');\n    Vditor.wavedromRender(previewElement, '").concat(vditor.options.cdn, "');\n    Vditor.chartRender(previewElement, '").concat(vditor.options.cdn, "', '").concat(vditor.options.theme, "');\n    Vditor.mindmapRender(previewElement, '").concat(vditor.options.cdn, "', '").concat(vditor.options.theme, "');\n    Vditor.abcRender(previewElement, '").concat(vditor.options.cdn, "');\n    ").concat(vditor.options.preview.render.media.enable ? 'Vditor.mediaRender(previewElement);' : "", "\n    Vditor.speechRender(previewElement);\n</script>\n<script src=\"").concat(vditor.options.cdn, "/dist/js/icons/").concat(vditor.options.icon, ".js\"></script></body></html>");
     download(vditor, html, content.substr(0, 10) + ".html");
 };
 
@@ -14244,7 +14792,7 @@ var Toolbar = /** @class */ (function () {
 
 
 // EXTERNAL MODULE: ./node_modules/.pnpm/diff-match-patch@1.0.5/node_modules/diff-match-patch/index.js
-var diff_match_patch = __webpack_require__(173);
+var diff_match_patch = __webpack_require__(132);
 ;// CONCATENATED MODULE: ./src/ts/undo/index.ts
 
 
@@ -14778,7 +15326,7 @@ var Options = /** @class */ (function () {
                 hotkey: "⇧⌘H",
                 icon: '<svg><use xlink:href="#vditor-icon-line"></use></svg>',
                 name: "line",
-                prefix: "---",
+                prefix: "***",
                 tipPosition: "n",
             },
             {
@@ -15951,6 +16499,7 @@ var Vditor = /** @class */ (function (_super) {
             "".concat(mergedOptions.cdn, "/dist/js/lute/lute.min.js"), "vditorLuteScript").then(function () {
             _this.vditor.lute = (0,setLute/* setLute */.X)({
                 autoSpace: _this.vditor.options.preview.markdown.autoSpace,
+                callout: _this.vditor.options.preview.markdown.callout,
                 gfmAutoLink: _this.vditor.options.preview.markdown.gfmAutoLink,
                 codeBlockPreview: _this.vditor.options.preview.markdown
                     .codeBlockPreview,
@@ -15969,6 +16518,8 @@ var Vditor = /** @class */ (function (_super) {
                 paragraphBeginningSpace: _this.vditor.options.preview.markdown
                     .paragraphBeginningSpace,
                 sanitize: _this.vditor.options.preview.markdown.sanitize,
+                sub: _this.vditor.options.preview.markdown.sub,
+                sup: _this.vditor.options.preview.markdown.sup,
                 toc: _this.vditor.options.preview.markdown.toc,
             });
             _this.vditor.preview = new Preview(_this.vditor);

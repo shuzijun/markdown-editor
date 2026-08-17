@@ -17,6 +17,7 @@ export declare const execAfterRender: (vditor: IVditor, options?: {
     enableHint: boolean;
     enableInput: boolean;
 }) => void;
+export declare const exitEmptyListItem: (liElement: HTMLElement) => HTMLParagraphElement;
 export declare const fixList: (range: Range, vditor: IVditor, pElement: HTMLElement | false, event: KeyboardEvent) => boolean;
 export declare const fixTab: (vditor: IVditor, range: Range, event: KeyboardEvent) => boolean;
 export declare const fixMarkdown: (event: KeyboardEvent, vditor: IVditor, pElement: HTMLElement | false, range: Range) => boolean;

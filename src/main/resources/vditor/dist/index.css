@@ -1,5 +1,5 @@
 /*!
- * Vditor v3.11.2 - A markdown editor written in TypeScript.
+ * Vditor v3.11.3 - A markdown editor written in TypeScript.
  *
  * MIT License
  *
@@ -25,7 +25,7 @@
  *
  */
 /*!
- * Vditor v3.11.2 - A markdown editor written in TypeScript.
+ * Vditor v3.11.3 - A markdown editor written in TypeScript.
  *
  * MIT License
  *
@@ -69,6 +69,16 @@
   --count-background-color: rgba(27, 31, 35, 0.05);
   --heading-border-color: #eaecef;
   --blockquote-color: #6a737d;
+  --callout-note-color: #0969da;
+  --callout-note-background-color: rgba(9, 105, 218, 0.08);
+  --callout-tip-color: #1a7f37;
+  --callout-tip-background-color: rgba(26, 127, 55, 0.08);
+  --callout-important-color: #8250df;
+  --callout-important-background-color: rgba(130, 80, 223, 0.08);
+  --callout-warning-color: #9a6700;
+  --callout-warning-background-color: rgba(154, 103, 0, 0.08);
+  --callout-caution-color: #cf222e;
+  --callout-caution-background-color: rgba(207, 34, 46, 0.08);
   --ir-heading-color: #660e7a;
   --ir-title-color: #808080;
   --ir-bi-color: #0033b3;
@@ -93,6 +103,16 @@
   --count-background-color: rgba(66, 133, 244, 0.36);
   --heading-border-color: var(--textarea-text-color);
   --blockquote-color: var(--toolbar-icon-color);
+  --callout-note-color: #58a6ff;
+  --callout-note-background-color: rgba(56, 139, 253, 0.15);
+  --callout-tip-color: #3fb950;
+  --callout-tip-background-color: rgba(46, 160, 67, 0.15);
+  --callout-important-color: #a371f7;
+  --callout-important-background-color: rgba(163, 113, 247, 0.15);
+  --callout-warning-color: #d29922;
+  --callout-warning-background-color: rgba(187, 128, 9, 0.15);
+  --callout-caution-color: #f85149;
+  --callout-caution-background-color: rgba(248, 81, 73, 0.15);
   --ir-heading-color: #9876aa;
   --ir-title-color: #808080;
   --ir-bi-color: #cc7832;
@@ -866,6 +886,31 @@
   max-width: 20px;
   vertical-align: sub;
 }
+.vditor-reset figure.vditor-image {
+  margin: 0 0 16px;
+  text-align: center;
+}
+.vditor-reset figure.vditor-image figcaption {
+  font-size: 0.875em;
+  margin-top: 4px;
+  opacity: 0.65;
+  white-space: pre-wrap;
+}
+.vditor-reset span.vditor-image[data-image-caption] {
+  display: inline-block;
+  max-width: 100%;
+  text-align: center;
+  vertical-align: top;
+}
+.vditor-reset span.vditor-image[data-image-caption]::after {
+  content: attr(data-image-caption);
+  display: block;
+  font-size: 0.875em;
+  line-height: 1.5;
+  margin-top: 4px;
+  opacity: 0.65;
+  white-space: pre-wrap;
+}
 .vditor-reset h1,
 .vditor-reset h2,
 .vditor-reset h3,
@@ -1011,7 +1056,8 @@
 .vditor-reset .language-markmap,
 .vditor-reset .language-abc,
 .vditor-reset .language-flowchart,
-.vditor-reset .language-graphviz {
+.vditor-reset .language-graphviz,
+.vditor-reset .language-wavedrom {
   margin-bottom: 16px;
 }
 .vditor-reset .language-math mjx-container:focus {
@@ -1031,7 +1077,8 @@
 .vditor-reset .language-mermaid,
 .vditor-reset .language-markmap,
 .vditor-reset .language-flowchart,
-.vditor-reset .language-graphviz {
+.vditor-reset .language-graphviz,
+.vditor-reset .language-wavedrom {
   text-align: center;
 }
 .vditor-reset .language-graphviz parsererror {
@@ -1332,6 +1379,88 @@
 }
 .vditor-outline__action--close {
   transform: rotate(-90deg);
+}
+.vditor-reset .callout,
+.vditor-wysiwyg blockquote.callout,
+.vditor-ir blockquote.callout {
+  --callout-color: var(--callout-note-color, #0969da);
+  --callout-background-color: var(--callout-note-background-color, rgba(9, 105, 218, 0.08));
+  position: relative;
+  margin: 0 0 16px;
+  padding: 0.75em 1em;
+  color: inherit;
+  background-color: var(--callout-background-color);
+  border: 0;
+  border-left: 0.25em solid var(--callout-color);
+}
+.vditor-reset .callout[data-subtype="TIP"],
+.vditor-wysiwyg blockquote.callout[data-subtype="TIP"],
+.vditor-ir blockquote.callout[data-subtype="TIP"] {
+  --callout-color: var(--callout-tip-color, #1a7f37);
+  --callout-background-color: var(--callout-tip-background-color, rgba(26, 127, 55, 0.08));
+}
+.vditor-reset .callout[data-subtype="IMPORTANT"],
+.vditor-wysiwyg blockquote.callout[data-subtype="IMPORTANT"],
+.vditor-ir blockquote.callout[data-subtype="IMPORTANT"] {
+  --callout-color: var(--callout-important-color, #8250df);
+  --callout-background-color: var(--callout-important-background-color, rgba(130, 80, 223, 0.08));
+}
+.vditor-reset .callout[data-subtype="WARNING"],
+.vditor-wysiwyg blockquote.callout[data-subtype="WARNING"],
+.vditor-ir blockquote.callout[data-subtype="WARNING"] {
+  --callout-color: var(--callout-warning-color, #9a6700);
+  --callout-background-color: var(--callout-warning-background-color, rgba(154, 103, 0, 0.08));
+}
+.vditor-reset .callout[data-subtype="CAUTION"],
+.vditor-wysiwyg blockquote.callout[data-subtype="CAUTION"],
+.vditor-ir blockquote.callout[data-subtype="CAUTION"] {
+  --callout-color: var(--callout-caution-color, #cf222e);
+  --callout-background-color: var(--callout-caution-background-color, rgba(207, 34, 46, 0.08));
+}
+.vditor-reset .callout > .callout-info,
+.vditor-wysiwyg blockquote.callout > .callout-info,
+.vditor-ir blockquote.callout > .callout-info {
+  display: flex;
+  align-items: center;
+  min-height: 1.5em;
+  margin: 0 0 0.5em;
+  color: var(--callout-color);
+  font-weight: 600;
+}
+.vditor-reset .callout > .callout-info .callout-icon,
+.vditor-wysiwyg blockquote.callout > .callout-info .callout-icon,
+.vditor-ir blockquote.callout > .callout-info .callout-icon {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 0.35em;
+}
+.vditor-reset .callout > .callout-info .callout-title,
+.vditor-wysiwyg blockquote.callout > .callout-info .callout-title,
+.vditor-ir blockquote.callout > .callout-info .callout-title {
+  min-width: 1px;
+}
+.vditor-reset .callout > .callout-info .callout-img,
+.vditor-wysiwyg blockquote.callout > .callout-info .callout-img,
+.vditor-ir blockquote.callout > .callout-info .callout-img,
+.vditor-reset .callout > .callout-info > .callout-img,
+.vditor-wysiwyg blockquote.callout > .callout-info > .callout-img,
+.vditor-ir blockquote.callout > .callout-info > .callout-img {
+  width: 1.2em;
+  height: 1.2em;
+  margin-right: 0.35em;
+  -o-object-fit: contain;
+     object-fit: contain;
+}
+.vditor-reset .callout > .callout-content > :last-child,
+.vditor-wysiwyg blockquote.callout > .callout-content > :last-child,
+.vditor-ir blockquote.callout > .callout-content > :last-child,
+.vditor-reset .callout > :last-child,
+.vditor-wysiwyg blockquote.callout > :last-child,
+.vditor-ir blockquote.callout > :last-child {
+  margin-bottom: 0;
+}
+.vditor-wysiwyg__callout-marker {
+  display: none;
 }
 .vditor-wysiwyg {
   box-sizing: border-box;

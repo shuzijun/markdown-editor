@@ -1,5 +1,5 @@
 /*!
- * Vditor v3.11.2 - A markdown editor written in TypeScript.
+ * Vditor v3.11.3 - A markdown editor written in TypeScript.
  *
  * MIT License
  *
@@ -45,7 +45,7 @@ return /******/ (() => { // webpackBootstrap
 /* harmony export */   "g": () => (/* binding */ Constants)
 /* harmony export */ });
 /* unused harmony export VDITOR_VERSION */
-var _VDITOR_VERSION = (/* unused pure expression or super */ null && ("3.11.2"));
+var _VDITOR_VERSION = (/* unused pure expression or super */ null && ("3.11.3"));
 
 var Constants = /** @class */ (function () {
     function Constants() {
@@ -89,17 +89,19 @@ var Constants = /** @class */ (function () {
         "stackoverflow-light", "tokyo-night-light", "vs", "xcode", "default"];
     Constants.ALIAS_CODE_LANGUAGES = [
         // 自定义
-        "abc", "plantuml", "mermaid", "flowchart", "echarts", "mindmap", "graphviz", "math", "markmap", "smiles",
+        "abc", "plantuml", "mermaid", "flowchart", "echarts", "mindmap", "graphviz", "wavedrom", "math", "markmap", "smiles",
         // 别名
         "js", "ts", "html", "toml", "c#", "bat"
     ];
-    Constants.CDN = "https://unpkg.com/vditor@".concat("3.11.2");
+    Constants.CDN = "https://unpkg.com/vditor@".concat("3.11.3");
     Constants.MARKDOWN_OPTIONS = {
         autoSpace: false,
+        callout: true,
         gfmAutoLink: true,
         codeBlockPreview: true,
         fixTermTypo: false,
         footnotes: true,
+        imageCaption: false,
         linkBase: "",
         linkPrefix: "",
         listStyle: false,
@@ -107,6 +109,8 @@ var Constants = /** @class */ (function () {
         mathBlockPreview: true,
         paragraphBeginningSpace: false,
         sanitize: true,
+        sub: false,
+        sup: false,
         toc: false,
     };
     Constants.HLJS_OPTIONS = {
@@ -225,6 +229,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "chartRenderAdapter": () => (/* binding */ chartRenderAdapter),
 /* harmony export */   "abcRenderAdapter": () => (/* binding */ abcRenderAdapter),
 /* harmony export */   "graphvizRenderAdapter": () => (/* binding */ graphvizRenderAdapter),
+/* harmony export */   "wavedromRenderAdapter": () => (/* binding */ wavedromRenderAdapter),
 /* harmony export */   "flowchartRenderAdapter": () => (/* binding */ flowchartRenderAdapter),
 /* harmony export */   "plantumlRenderAdapter": () => (/* binding */ plantumlRenderAdapter)
 /* harmony export */ });
@@ -260,6 +265,10 @@ var abcRenderAdapter = {
 var graphvizRenderAdapter = {
     getCode: function (el) { return el.textContent; },
     getElements: function (el) { return el.querySelectorAll(".language-graphviz"); },
+};
+var wavedromRenderAdapter = {
+    getCode: function (el) { return el.textContent; },
+    getElements: function (el) { return el.querySelectorAll(".language-wavedrom"); },
 };
 var flowchartRenderAdapter = {
     getCode: function (el) { return el.textContent; },
@@ -614,6 +623,178 @@ var highlightRender = function (hljsOption, element, cdn) {
             });
         });
     });
+};
+
+
+/***/ }),
+
+/***/ 161:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "V": () => (/* binding */ renderImageCaptionHTML)
+/* harmony export */ });
+/* unused harmony export renderImageCaptions */
+var getContentNodes = function (element, ignoreIRMarkers) {
+    if (ignoreIRMarkers === void 0) { ignoreIRMarkers = false; }
+    return Array.from(element.childNodes).filter(function (node) {
+        if (node.nodeType === Node.COMMENT_NODE) {
+            return false;
+        }
+        if (node.nodeType === Node.TEXT_NODE) {
+            return node.textContent.replace(/\u200b/g, "").trim() !== "";
+        }
+        if (!(node instanceof HTMLElement)) {
+            return true;
+        }
+        if (node.tagName === "WBR") {
+            return false;
+        }
+        return !ignoreIRMarkers || !node.classList.contains("vditor-ir__marker");
+    });
+};
+var getWYSIWYGImage = function (paragraph) {
+    var nodes = getContentNodes(paragraph);
+    if (nodes.length !== 1 || !(nodes[0] instanceof HTMLElement)) {
+        return undefined;
+    }
+    var container = nodes[0];
+    if (container instanceof HTMLImageElement) {
+        return {
+            container: container,
+            image: container,
+        };
+    }
+    if (container instanceof HTMLAnchorElement) {
+        var linkNodes = getContentNodes(container);
+        if (linkNodes.length === 1 && linkNodes[0] instanceof HTMLImageElement) {
+            return {
+                container: container,
+                image: linkNodes[0],
+            };
+        }
+    }
+    return undefined;
+};
+var getIRImage = function (paragraph) {
+    var nodes = getContentNodes(paragraph);
+    if (nodes.length !== 1 || !(nodes[0] instanceof HTMLElement)) {
+        return undefined;
+    }
+    var imageNode = nodes[0];
+    if (imageNode.getAttribute("data-type") === "a") {
+        var linkNodes = getContentNodes(imageNode, true);
+        if (linkNodes.length !== 1 || !(linkNodes[0] instanceof HTMLElement)) {
+            return undefined;
+        }
+        imageNode = linkNodes[0];
+    }
+    if (imageNode.getAttribute("data-type") !== "img") {
+        return undefined;
+    }
+    var image = imageNode.querySelector(":scope > img");
+    var titleMarker = imageNode.querySelector(":scope > .vditor-ir__marker--title");
+    if (!(image instanceof HTMLImageElement) || !titleMarker) {
+        return undefined;
+    }
+    var markerText = titleMarker.textContent.trim();
+    var closeMarker = markerText[0] === "(" ? ")" : markerText[0];
+    if (markerText.length < 2 || !["\"", "'", "("].includes(markerText[0]) ||
+        markerText[markerText.length - 1] !== closeMarker) {
+        return undefined;
+    }
+    return {
+        caption: markerText.slice(1, -1).trim(),
+        container: imageNode,
+        image: image,
+    };
+};
+var unwrapWYSIWYGCaptions = function (element) {
+    element.querySelectorAll("span.vditor-image[data-image-caption]").forEach(function (wrapper) {
+        while (wrapper.firstChild) {
+            wrapper.parentNode.insertBefore(wrapper.firstChild, wrapper);
+        }
+        wrapper.remove();
+    });
+};
+var resetIRCaptions = function (element) {
+    element.querySelectorAll(".vditor-image[data-image-caption]").forEach(function (imageNode) {
+        imageNode.classList.remove("vditor-image");
+        imageNode.removeAttribute("data-image-caption");
+    });
+};
+var renderPreviewCaptions = function (element) {
+    element.querySelectorAll("p").forEach(function (paragraph) {
+        var _a;
+        var imageData = getWYSIWYGImage(paragraph);
+        var caption = (_a = imageData === null || imageData === void 0 ? void 0 : imageData.image.getAttribute("title")) === null || _a === void 0 ? void 0 : _a.trim();
+        if (!imageData || !caption) {
+            return;
+        }
+        var figure = document.createElement("figure");
+        Array.from(paragraph.attributes).forEach(function (attribute) {
+            figure.setAttribute(attribute.name, attribute.value);
+        });
+        figure.classList.add("vditor-image");
+        var figcaption = document.createElement("figcaption");
+        figcaption.textContent = caption;
+        figure.append(imageData.container, figcaption);
+        paragraph.replaceWith(figure);
+    });
+};
+var renderWYSIWYGCaptions = function (element) {
+    element.querySelectorAll("p").forEach(function (paragraph) {
+        var _a;
+        var imageData = getWYSIWYGImage(paragraph);
+        var caption = (_a = imageData === null || imageData === void 0 ? void 0 : imageData.image.getAttribute("title")) === null || _a === void 0 ? void 0 : _a.trim();
+        if (!imageData || !caption) {
+            return;
+        }
+        var wrapper = document.createElement("span");
+        wrapper.className = "vditor-image";
+        wrapper.setAttribute("data-image-caption", caption);
+        imageData.container.replaceWith(wrapper);
+        wrapper.append(imageData.container);
+    });
+};
+var renderIRCaptions = function (element) {
+    element.querySelectorAll("p").forEach(function (paragraph) {
+        var imageData = getIRImage(paragraph);
+        if (!(imageData === null || imageData === void 0 ? void 0 : imageData.caption)) {
+            return;
+        }
+        imageData.container.classList.add("vditor-image");
+        imageData.container.setAttribute("data-image-caption", imageData.caption);
+    });
+};
+var renderImageCaptions = function (element, mode, enable) {
+    if (mode === "wysiwyg") {
+        unwrapWYSIWYGCaptions(element);
+    }
+    else if (mode === "ir") {
+        resetIRCaptions(element);
+    }
+    if (!enable) {
+        return;
+    }
+    if (mode === "preview") {
+        renderPreviewCaptions(element);
+    }
+    else if (mode === "wysiwyg") {
+        renderWYSIWYGCaptions(element);
+    }
+    else {
+        renderIRCaptions(element);
+    }
+};
+var renderImageCaptionHTML = function (html, enable) {
+    if (!enable) {
+        return html;
+    }
+    var container = document.createElement("div");
+    container.innerHTML = html;
+    renderImageCaptions(container, "preview", true);
+    return container.innerHTML;
 };
 
 
@@ -1000,7 +1181,7 @@ var mermaidRender = function (element, cdn, theme) {
     if (mermaidElements.length === 0) {
         return;
     }
-    (0,_util_addScript__WEBPACK_IMPORTED_MODULE_2__/* .addScript */ .G)("".concat(cdn, "/dist/js/mermaid/mermaid.min.js?v=11.6.0"), "vditorMermaidScript").then(function () {
+    (0,_util_addScript__WEBPACK_IMPORTED_MODULE_2__/* .addScript */ .G)("".concat(cdn, "/dist/js/mermaid/mermaid.min.js?v=11.16.1"), "vditorMermaidScript").then(function () {
         var config = {
             securityLevel: "loose",
             altFontFamily: "sans-serif",
@@ -1335,6 +1516,7 @@ var setLute = function (options) {
     lute.SetHeadingAnchor(options.headingAnchor);
     lute.SetInlineMathAllowDigitAfterOpenMarker(options.inlineMathDigit);
     lute.SetAutoSpace(options.autoSpace);
+    lute.SetCallout(options.callout);
     lute.SetToC(options.toc);
     lute.SetFootnotes(options.footnotes);
     lute.SetFixTermTypo(options.fixTermTypo);
@@ -1350,7 +1532,117 @@ var setLute = function (options) {
     if (options.lazyLoadImage) {
         lute.SetImageLazyLoading(options.lazyLoadImage);
     }
+    lute.SetSup(options.sup);
+    lute.SetSub(options.sub);
     return lute;
+};
+
+
+/***/ }),
+
+/***/ 497:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "F": () => (/* binding */ wavedromRender)
+/* harmony export */ });
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(145);
+/* harmony import */ var _util_addScript__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(413);
+/* harmony import */ var _util_function__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(494);
+/* harmony import */ var _adapterRender__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(840);
+var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (undefined && undefined.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+
+
+
+
+var wavedromIndex = 0;
+var wavedromRender = function (element, cdn) {
+    if (element === void 0) { element = document; }
+    if (cdn === void 0) { cdn = _constants__WEBPACK_IMPORTED_MODULE_0__/* .Constants.CDN */ .g.CDN; }
+    var wavedromElements = _adapterRender__WEBPACK_IMPORTED_MODULE_1__.wavedromRenderAdapter.getElements(element);
+    if (wavedromElements.length === 0) {
+        return;
+    }
+    (0,_util_addScript__WEBPACK_IMPORTED_MODULE_2__/* .addScript */ .G)("".concat(cdn, "/dist/js/wavedrom/wavedrom.min.js?v=3.6.2"), "vditorWavedromScript").then(function () {
+        wavedromElements.forEach(function (item) { return __awaiter(void 0, void 0, void 0, function () {
+            var code, renderElement, source, error_1, message, lineBreak;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (item.parentElement.classList.contains("vditor-wysiwyg__pre") ||
+                            item.parentElement.classList.contains("vditor-ir__marker--pre")) {
+                            return [2 /*return*/];
+                        }
+                        code = _adapterRender__WEBPACK_IMPORTED_MODULE_1__.wavedromRenderAdapter.getCode(item);
+                        if (item.getAttribute("data-processed") === "true" || code.trim() === "") {
+                            return [2 /*return*/];
+                        }
+                        renderElement = item;
+                        if (item.tagName === "CODE") {
+                            renderElement = document.createElement("div");
+                            Array.from(item.attributes).forEach(function (attribute) {
+                                renderElement.setAttribute(attribute.name, attribute.value);
+                            });
+                            item.replaceWith(renderElement);
+                        }
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, (0,_util_function__WEBPACK_IMPORTED_MODULE_3__/* .looseJsonParse */ .Qf)(code)];
+                    case 2:
+                        source = _a.sent();
+                        wavedrom.renderWaveElement(wavedromIndex, source, renderElement, wavedrom.waveSkin, false);
+                        wavedromIndex++;
+                        return [3 /*break*/, 4];
+                    case 3:
+                        error_1 = _a.sent();
+                        message = error_1 instanceof Error ? error_1.message : String(error_1);
+                        lineBreak = document.createElement("br");
+                        renderElement.replaceChildren(document.createTextNode("wavedrom render error:"), lineBreak, document.createTextNode(message));
+                        renderElement.classList.add("vditor-reset--error");
+                        return [3 /*break*/, 4];
+                    case 4:
+                        renderElement.setAttribute("data-processed", "true");
+                        return [2 /*return*/];
+                }
+            });
+        }); });
+    });
 };
 
 
@@ -2238,6 +2530,8 @@ var mindmapRender = __webpack_require__(194);
 var outlineRender = __webpack_require__(436);
 // EXTERNAL MODULE: ./src/ts/markdown/plantumlRender.ts
 var plantumlRender = __webpack_require__(229);
+// EXTERNAL MODULE: ./src/ts/markdown/wavedromRender.ts
+var wavedromRender = __webpack_require__(497);
 // EXTERNAL MODULE: ./src/ts/constants.ts
 var constants = __webpack_require__(145);
 // EXTERNAL MODULE: ./src/ts/ui/setContentTheme.ts
@@ -2268,6 +2562,8 @@ var anchorRender = function (type) {
     };
 };
 
+// EXTERNAL MODULE: ./src/ts/markdown/imageCaptionRender.ts
+var imageCaptionRender = __webpack_require__(161);
 // EXTERNAL MODULE: ./src/ts/markdown/setLute.ts
 var setLute = __webpack_require__(214);
 // EXTERNAL MODULE: ./src/ts/util/selection.ts
@@ -2431,6 +2727,8 @@ var __generator = (undefined && undefined.__generator) || function (thisArg, bod
 
 
 
+
+
 var mergeOptions = function (options) {
     var _a;
     var defaultOption = {
@@ -2469,6 +2767,7 @@ var md2html = function (mdText, options) {
     return (0,addScript/* addScript */.G)("".concat(mergedOptions.cdn, "/dist/js/lute/lute.min.js"), "vditorLuteScript").then(function () {
         var lute = (0,setLute/* setLute */.X)({
             autoSpace: mergedOptions.markdown.autoSpace,
+            callout: mergedOptions.markdown.callout,
             gfmAutoLink: mergedOptions.markdown.gfmAutoLink,
             codeBlockPreview: mergedOptions.markdown.codeBlockPreview,
             emojiSite: mergedOptions.emojiPath,
@@ -2485,6 +2784,8 @@ var md2html = function (mdText, options) {
             mathBlockPreview: mergedOptions.markdown.mathBlockPreview,
             paragraphBeginningSpace: mergedOptions.markdown.paragraphBeginningSpace,
             sanitize: mergedOptions.markdown.sanitize,
+            sub: mergedOptions.markdown.sub,
+            sup: mergedOptions.markdown.sup,
             toc: mergedOptions.markdown.toc,
         });
         if (options === null || options === void 0 ? void 0 : options.renderers) {
@@ -2495,7 +2796,7 @@ var md2html = function (mdText, options) {
             });
         }
         lute.SetHeadingID(true);
-        return lute.Md2HTML(mdText);
+        return (0,imageCaptionRender/* renderImageCaptionHTML */.V)(lute.Md2HTML(mdText), mergedOptions.markdown.imageCaption);
     });
 };
 var previewRender = function (previewElement, markdown, options) { return __awaiter(void 0, void 0, void 0, function () {
@@ -2553,6 +2854,7 @@ var previewRender = function (previewElement, markdown, options) { return __awai
                 (0,markmapRender/* markmapRender */.K)(previewElement, mergedOptions.cdn);
                 (0,flowchartRender/* flowchartRender */.P)(previewElement, mergedOptions.cdn);
                 (0,graphvizRender/* graphvizRender */.v)(previewElement, mergedOptions.cdn);
+                (0,wavedromRender/* wavedromRender */.F)(previewElement, mergedOptions.cdn);
                 (0,chartRender/* chartRender */.p)(previewElement, mergedOptions.cdn, mergedOptions.mode);
                 (0,mindmapRender/* mindmapRender */.P)(previewElement, mergedOptions.cdn, mergedOptions.mode);
                 (0,plantumlRender/* plantumlRender */.B)(previewElement, mergedOptions.cdn);
@@ -2613,6 +2915,7 @@ var setCodeTheme = __webpack_require__(580);
 
 
 
+
 var Vditor = /** @class */ (function () {
     function Vditor() {
     }
@@ -2624,6 +2927,8 @@ var Vditor = /** @class */ (function () {
     Vditor.codeRender = codeRender/* codeRender */.O;
     /** 对 graphviz 进行渲染 */
     Vditor.graphvizRender = graphvizRender/* graphvizRender */.v;
+    /** 对数字波形图进行渲染 */
+    Vditor.wavedromRender = wavedromRender/* wavedromRender */.F;
     /** 为 element 中的代码块进行高亮渲染 */
     Vditor.highlightRender = highlightRender/* highlightRender */.s;
     /** 对数学公式进行渲染 */
