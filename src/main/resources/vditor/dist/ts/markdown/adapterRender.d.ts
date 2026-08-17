@@ -31,6 +31,10 @@ export declare const graphvizRenderAdapter: {
     getCode: (el: Element) => string;
     getElements: (el: HTMLElement | Document) => NodeListOf<Element>;
 };
+export declare const wavedromRenderAdapter: {
+    getCode: (el: Element) => string;
+    getElements: (el: HTMLElement | Document) => NodeListOf<Element>;
+};
 export declare const flowchartRenderAdapter: {
     getCode: (el: Element) => string;
     getElements: (el: HTMLElement | Document) => NodeListOf<Element>;

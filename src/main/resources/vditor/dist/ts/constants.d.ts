@@ -12,10 +12,12 @@ export declare abstract class Constants {
     static readonly CDN: string;
     static readonly MARKDOWN_OPTIONS: {
         autoSpace: boolean;
+        callout: boolean;
         gfmAutoLink: boolean;
         codeBlockPreview: boolean;
         fixTermTypo: boolean;
         footnotes: boolean;
+        imageCaption: boolean;
         linkBase: string;
         linkPrefix: string;
         listStyle: boolean;
@@ -23,6 +25,8 @@ export declare abstract class Constants {
         mathBlockPreview: boolean;
         paragraphBeginningSpace: boolean;
         sanitize: boolean;
+        sub: boolean;
+        sup: boolean;
         toc: boolean;
     };
     static readonly HLJS_OPTIONS: {

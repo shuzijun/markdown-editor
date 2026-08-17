@@ -8,6 +8,8 @@ declare class Vditor {
     static codeRender: (element: HTMLElement, option?: IHljs) => void;
     /** 对 graphviz 进行渲染 */
     static graphvizRender: (element: HTMLElement, cdn?: string) => void;
+    /** 对数字波形图进行渲染 */
+    static wavedromRender: (element?: HTMLElement | Document, cdn?: string) => void;
     /** 为 element 中的代码块进行高亮渲染 */
     static highlightRender: (hljsOption?: IHljs, element?: HTMLElement | Document, cdn?: string) => void;
     /** 对数学公式进行渲染 */
